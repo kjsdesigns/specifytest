@@ -1,0 +1,16 @@
+id: SC-[XXX]
+name: [descriptive-kebab-case-name]
+content_hash: [SHA256_HASH]  # Auto-computed from YAML content
+hash_timestamp: [ISO_8601_TIMESTAMP]  # When hash was generated (YYYY-MM-DDTHH:MM:SSZ)
+purpose: [End-to-end scenario description]
+test_cases:
+  - TC-001  # First test in sequence
+  - TC-002  # Next test
+  - TC-003  # Continue sequence
+preconditions:
+  - PC-001  # Setup needed for scenario
+  - PC-003  # Additional setup
+nested_scenarios:
+  - SC-002  # If this scenario includes others
+timeout: [seconds]
+cache_strategy: [none|session|persistent]

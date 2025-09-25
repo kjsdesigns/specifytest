@@ -50,12 +50,31 @@ fi
 
 cd "$REPO_ROOT"
 
+# Ensure modular spec directories exist
 SPECS_DIR="$REPO_ROOT/specs"
 mkdir -p "$SPECS_DIR"
+mkdir -p "$SPECS_DIR/workflows"
+mkdir -p "$SPECS_DIR/pages"
+mkdir -p "$SPECS_DIR/concepts"
+mkdir -p "$SPECS_DIR/data"
+mkdir -p "$SPECS_DIR/contracts"
+mkdir -p "$SPECS_DIR/integrations"
+mkdir -p "$SPECS_DIR/security"
+mkdir -p "$SPECS_DIR/technology"
+mkdir -p "$SPECS_DIR/configuration"
 
+# Create plans directory for execution tracking
+PLANS_DIR="$REPO_ROOT/plans"
+mkdir -p "$PLANS_DIR"
+
+# Generate a plan name based on feature description
+PLAN_NAME=$(echo "$FEATURE_DESCRIPTION" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/-\+/-/g' | sed 's/^-//' | sed 's/-$//')
+WORDS=$(echo "$PLAN_NAME" | tr '-' '\n' | grep -v '^$' | head -3 | tr '\n' '-' | sed 's/-$//')
+
+# Find the next available plan number
 HIGHEST=0
-if [ -d "$SPECS_DIR" ]; then
-    for dir in "$SPECS_DIR"/*; do
+if [ -d "$PLANS_DIR" ]; then
+    for dir in "$PLANS_DIR"/*; do
         [ -d "$dir" ] || continue
         dirname=$(basename "$dir")
         number=$(echo "$dirname" | grep -o '^[0-9]\+' || echo "0")
@@ -65,33 +84,31 @@ if [ -d "$SPECS_DIR" ]; then
 fi
 
 NEXT=$((HIGHEST + 1))
-FEATURE_NUM=$(printf "%03d" "$NEXT")
+PLAN_NUM=$(printf "%03d" "$NEXT")
+PLAN_NAME="${PLAN_NUM}-${WORDS}"
 
-BRANCH_NAME=$(echo "$FEATURE_DESCRIPTION" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/-\+/-/g' | sed 's/^-//' | sed 's/-$//')
-WORDS=$(echo "$BRANCH_NAME" | tr '-' '\n' | grep -v '^$' | head -3 | tr '\n' '-' | sed 's/-$//')
-BRANCH_NAME="${FEATURE_NUM}-${WORDS}"
+# Create plan directory
+PLAN_DIR="$PLANS_DIR/$PLAN_NAME"
+mkdir -p "$PLAN_DIR"
 
-if [ "$HAS_GIT" = true ]; then
-    git checkout -b "$BRANCH_NAME"
-else
-    >&2 echo "[specify] Warning: Git repository not detected; skipped branch creation for $BRANCH_NAME"
-fi
+# Note: We do NOT create any spec files here - that's the job of /specify command
+# which will evaluate requirements and create/update appropriate type-specific specs
 
-FEATURE_DIR="$SPECS_DIR/$BRANCH_NAME"
-mkdir -p "$FEATURE_DIR"
-
-TEMPLATE="$REPO_ROOT/templates/spec-template.md"
-SPEC_FILE="$FEATURE_DIR/spec.md"
-if [ -f "$TEMPLATE" ]; then cp "$TEMPLATE" "$SPEC_FILE"; else touch "$SPEC_FILE"; fi
-
-# Set the SPECIFY_FEATURE environment variable for the current session
-export SPECIFY_FEATURE="$BRANCH_NAME"
+# Set environment variable for current session
+export SPECIFY_FEATURE="$PLAN_NAME"
 
 if $JSON_MODE; then
-    printf '{"BRANCH_NAME":"%s","SPEC_FILE":"%s","FEATURE_NUM":"%s"}\n' "$BRANCH_NAME" "$SPEC_FILE" "$FEATURE_NUM"
+    printf '{"PLAN_NAME":"%s","SPECS_DIR":"%s","PLANS_DIR":"%s","PLAN_NUM":"%s"}\n' "$PLAN_NAME" "$SPECS_DIR" "$PLAN_DIR" "$PLAN_NUM"
 else
-    echo "BRANCH_NAME: $BRANCH_NAME"
-    echo "SPEC_FILE: $SPEC_FILE"
-    echo "FEATURE_NUM: $FEATURE_NUM"
-    echo "SPECIFY_FEATURE environment variable set to: $BRANCH_NAME"
+    echo "PLAN_NAME: $PLAN_NAME"
+    echo "SPECS_DIR: $SPECS_DIR"
+    echo "PLAN_DIR: $PLAN_DIR"
+    echo "PLAN_NUM: $PLAN_NUM"
+    echo ""
+    echo "Modular spec directories prepared at: $SPECS_DIR"
+    echo "Plan directory created at: $PLAN_DIR"
+    echo "SPECIFY_FEATURE environment variable set to: $PLAN_NAME"
+    echo ""
+    echo "The /specify command will now evaluate requirements and create/update"
+    echo "appropriate type-specific specs based on the requirement analysis."
 fi

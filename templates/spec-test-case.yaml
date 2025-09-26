@@ -1,0 +1,33 @@
+id: TC-[XXX]
+name: [descriptive-kebab-case-name]
+hash_timestamp: [ISO_8601_TIMESTAMP]  # Updated on every save (YYYY-MM-DDTHH:MM:SSZ)
+purpose: [Why this test exists and what it validates]
+preconditions:
+  - /specs/precondition-cases/PC-001.yaml  # Reference to precondition case
+  - /specs/precondition-cases/PC-002.yaml  # Another precondition if needed
+steps:
+  - step: 1
+    action: [What to do]
+    expected: [What should happen]
+  - step: 2
+    action: [Next action]
+    expected: [Expected result]
+validations:
+  - [What to verify]
+  - [Another validation]
+teardown:
+  - [Cleanup step 1]
+  - [Cleanup step 2]
+inputs:
+  - name: [input_name]
+    type: [type]
+    value: [value or source]
+expected_outputs:
+  - name: [output_name]
+    type: [type]
+    value: [expected value]
+environment:
+  - [Environment requirement]
+pass_criteria:
+  - [Specific measurable criteria]
+  - [Another criteria]

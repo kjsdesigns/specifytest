@@ -1,235 +1,226 @@
-# SpecifyTest
+# Specifytest
 
-A Specification-Driven Development framework with simplified timestamp-based versioning for tracking specification changes and implementation staleness.
+A comprehensive specification-driven development framework with timestamp-based versioning for tracking specification changes and implementation staleness.
 
 ## Overview
 
-SpecifyTest implements a comprehensive specification system that uses timestamps to automatically track changes and detect when implementations become outdated. The framework enforces Test-Driven Development (TDD) principles through a constitution-based governance model.
+Specifytest provides templates, scripts, and governance for implementing specification-driven development in any project. It uses simple ISO 8601 timestamps to track changes and detect when implementations become outdated.
+
+## Installation
+
+### As a Git Submodule (Recommended)
+
+Add specifytest to your project as a submodule at `.specify/`:
+
+```bash
+git submodule add https://github.com/kjsdesigns/specifytest.git .specify
+git submodule update --init --recursive
+git commit -m "Add specifytest framework"
+```
+
+Or use the installation script:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/kjsdesigns/specifytest/main/install.sh | bash
+```
+
+## Repository Structure
+
+```
+/
+├── memory/
+│   └── constitution.md         # Framework principles and governance
+├── scripts/
+│   ├── check-staleness.sh      # Detect outdated implementations
+│   ├── check-staleness.py      # Python version with reports
+│   ├── validate-specs.py       # Validate spec compliance
+│   ├── generate-test-stub.py   # Generate test stubs from cases
+│   └── bash/                   # Bash helper scripts
+├── templates/
+│   ├── components/             # Reusable template components
+│   ├── spec-test-case.yaml     # Test case template
+│   ├── spec-scenario-case.yaml # Scenario template
+│   ├── spec-precondition-case.yaml # Precondition template
+│   ├── spec-workflow.md        # Workflow specs
+│   ├── spec-page.md            # Page/UI specs
+│   ├── spec-concept.md         # Domain concept specs
+│   ├── spec-data.md            # Data model specs
+│   ├── spec-contract.md        # API contract specs
+│   ├── spec-integration.md     # Integration specs
+│   ├── spec-security.md        # Security specs
+│   ├── spec-config.md          # Configuration specs
+│   ├── spec-technology.md      # Technology decision specs
+│   ├── spec-event.md           # Event specs
+│   ├── spec-message.md         # Message specs
+│   ├── plan-template.md        # Execution plan template
+│   └── tasks-template.md       # Tasks template
+├── commands/
+│   ├── specify.md              # /specify command for Claude Code
+│   ├── constitution.md         # /constitution command
+│   ├── plan.md                 # /plan command
+│   ├── tasks.md                # /tasks command
+│   ├── implement.md            # /implement command
+│   ├── analyze.md              # /analyze command
+│   └── clarify.md              # /clarify command
+├── install.sh                  # Installation helper
+└── README.md                   # This file
+```
 
 ## Key Features
 
-- **Timestamp-Only Versioning**: Simple ISO 8601 timestamps track when specifications change (no complex hashing)
-- **Automatic Staleness Detection**: Compare timestamps to identify outdated implementations with age-based prioritization
-- **14 Specification Types**: Comprehensive templates for workflows, pages, concepts, data, contracts, integrations, security, configuration, technology, events, and messages, plus 3 validation case types
-- **Reusable Components**: DRY-compliant template components for common patterns (API contracts, retry policies, monitoring, performance)
-- **Constitution-Based Governance**: Enforced principles and standards (currently v6.0.0)
-- **Standalone Case Architecture**: Test cases, scenario cases, and precondition cases as independent artifacts
-- **Simple Maintenance**: Just update timestamp on save - no special tools needed
-
-## Project Structure
-
-```
-.specify/
-├── memory/
-│   └── constitution.md         # Governance and principles (v6.0.0)
-├── scripts/
-│   ├── check-staleness.sh      # Detect outdated implementations via timestamp comparison
-│   ├── check-staleness.py      # Python version with detailed reporting
-│   ├── validate-specs.py       # Validate spec compliance (NEW)
-│   └── generate-test-stub.py   # Generate test stubs from cases
-└── templates/
-    ├── components/             # Reusable template components (DRY principle)
-    │   ├── spec-header.md      # Common YAML frontmatter
-    │   ├── spec-validation-cases.md
-    │   ├── spec-uncertainties.md
-    │   ├── spec-implementation-refs.md
-    │   ├── spec-base-fields.yaml
-    │   ├── spec-api-contract.yaml  # API endpoint patterns (NEW)
-    │   ├── spec-retry-policy.md    # Retry & circuit breaker (NEW)
-    │   ├── spec-monitoring.md      # Observability patterns (NEW)
-    │   ├── spec-inline-contracts.yaml  # YAML schema patterns (NEW)
-    │   ├── spec-performance.md     # Performance requirements (NEW)
-    │   ├── TEMPLATE_STRUCTURE.md  # Section ordering guide (NEW)
-    │   └── README.md
-    ├── spec-test-case.yaml
-    ├── spec-scenario-case.yaml
-    ├── spec-precondition-case.yaml
-    ├── spec-workflow.md
-    ├── spec-page.md
-    ├── spec-concept.md
-    ├── spec-data.md
-    ├── spec-contract.md         # Updated: CONTRACT-xxx ID format
-    ├── spec-integration.md
-    ├── spec-security.md
-    ├── spec-config.md
-    ├── spec-technology.md
-    ├── spec-event.md            # NEW: Event specifications
-    ├── spec-message.md          # NEW: Message specifications
-    ├── plan-template.md
-    └── tasks-template.md
-
-.claude/
-└── commands/
-    ├── specify.md              # /specify command implementation
-    └── constitution.md         # /constitution command
-
-specs/                         # All specifications and cases
-├── test-cases/                # Test case definitions (TC-xxx)
-├── scenario-cases/            # End-to-end scenarios (SC-xxx)
-├── precondition-cases/        # Reusable setup/teardown (PC-xxx)
-└── [type directories]         # Modular specifications by type
-plans/                         # Execution plans with Git SHA tracking
-```
+- **Timestamp-Based Versioning**: Simple ISO 8601 timestamps track changes
+- **14 Specification Types**: Templates for all aspects of development
+- **Automatic Staleness Detection**: Know when implementations are outdated
+- **Constitution-Based Governance**: Enforced principles and standards
+- **Test-Driven Development**: Cases as standalone, versioned artifacts
+- **Claude Code Integration**: Custom commands for AI-assisted development
+- **No Special Tools Required**: Any editor can update timestamps
 
 ## Quick Start
 
-### 1. Create a Test Case
+### 1. Install in Your Project
 
 ```bash
-# Create a new test case using the template
+cd your-project
+git submodule add https://github.com/kjsdesigns/specifytest.git .specify
+```
+
+### 2. Create Your First Spec
+
+```bash
+# Create specs directory
+mkdir -p specs/test-cases
+
+# Copy template
 cp .specify/templates/spec-test-case.yaml specs/test-cases/TC-001.yaml
-# Edit the file with your test details
-# Set hash_timestamp to current UTC time (update on every save)
+
+# Edit with your test details
+# Remember to update hash_timestamp to current UTC time
 ```
 
-### 2. Validate Specifications
+### 3. Run Staleness Check
 
 ```bash
-# Validate all specifications for compliance
-./.specify/scripts/validate-specs.py /specs/
-
-# Checks:
-# - Required fields present
-# - Valid timestamp format
-# - Correct ID formats (TC-xxx, EVENT-xxx, etc.)
-# - Status values
-# - Template compliance
+.specify/scripts/check-staleness.sh
 ```
 
-### 3. Check for Stale Implementations
+## Usage in Projects
 
-```bash
-# Scan entire repository for outdated implementations
-./.specify/scripts/check-staleness.sh
+Once installed as `.specify/`, the framework provides:
 
-# Or use Python version for detailed reports
-./.specify/scripts/check-staleness.py
+- **Templates**: Access via `.specify/templates/`
+- **Scripts**: Run via `.specify/scripts/`
+- **Constitution**: Review at `.specify/memory/constitution.md`
+- **Commands**: Available in `.specify/commands/` for Claude Code users
 
-# Output shows staleness by priority based on timestamp comparison:
-# CRITICAL (>30 days), HIGH (7-30 days), MEDIUM (1-7 days), LOW (<1 day)
+### Example: Creating a Test Case
+
+```yaml
+# specs/test-cases/TC-001.yaml
+id: TC-001
+name: user-login-valid-credentials
+hash_timestamp: 2024-09-26T15:30:00Z  # Update on every save!
+
+purpose: Verify users can login with valid credentials
+
+preconditions:
+  - /specs/precondition-cases/PC-001.yaml  # Database with test users
+
+steps:
+  - step: 1
+    action: Navigate to login page
+    expected: Login form is displayed
+
+  - step: 2
+    action: Enter valid username and password
+    expected: Credentials are accepted
+
+  - step: 3
+    action: Click login button
+    expected: User is redirected to dashboard
+
+validations:
+  - User session is created
+  - Dashboard shows user data
+  - Login timestamp is recorded
+
+pass_criteria:
+  - All validations pass
+  - No error messages shown
 ```
 
-### 4. Reference Cases in Implementations
+### Example: Implementing with Timestamp Reference
 
 ```python
-def test_user_login():
+# tests/test_auth.py
+def test_user_login_valid_credentials():
     """
     Implements: /specs/test-cases/TC-001.yaml
-    Case Timestamp: 2024-01-15T10:30:00Z
+    Case Timestamp: 2024-09-26T15:30:00Z
     """
-    # Your test implementation
+    # Test implementation here
+    pass
+```
+
+When the spec changes, update its `hash_timestamp`. The staleness checker will automatically detect that this implementation is outdated.
+
+## Updating Specifytest
+
+To get the latest version:
+
+```bash
+cd .specify
+git pull origin main
+cd ..
+git add .specify
+git commit -m "Update specifytest framework"
 ```
 
 ## Constitution Principles
 
-The project follows 9 core principles defined in `.specify/memory/constitution.md`:
+The framework enforces 9 core principles (see `.specify/memory/constitution.md`):
 
-1. **Test-Driven Development** (NON-NEGOTIABLE)
-2. **Standalone Case Architecture**
-3. **Independent Identifier Standards**
-4. **Complete Case Documentation**
-5. **Specs Reference Cases by Path**
-6. **Mandatory Template Usage** (NON-NEGOTIABLE)
-7. **Plans Track Git State and Tasks Reference Paths**
-8. **Implementation Timestamp References**
-9. **Timestamp-Only Versioning** (NON-NEGOTIABLE)
+1. **Test-Driven Development** - Write cases first
+2. **Standalone Case Architecture** - Cases are independent files
+3. **Independent Identifier Standards** - Consistent ID patterns
+4. **Complete Case Documentation** - All required fields
+5. **Specs Reference Cases by Path** - File path references
+6. **Mandatory Template Usage** - Use provided templates
+7. **Plans Track Git State** - Git SHA in plans
+8. **Implementation Timestamp References** - Track what you implement
+9. **Timestamp-Only Versioning** - Simple timestamp comparison
 
-## Timestamp-Based Change Detection
+## For Claude Code Users
 
-Every Case file includes:
-- `hash_timestamp`: ISO 8601 timestamp updated on every save
+If using Claude Code, the framework includes custom slash commands:
 
-Implementation files reference only the timestamp, enabling automatic detection of:
-- Which implementations are outdated (Case timestamp > implementation timestamp)
-- How long they've been outdated (simple date arithmetic)
-- Priority for updates based on staleness age
-
-The system is intentionally simple: just compare timestamps, no complex hashing needed.
-
-For detailed guidance, see [TIMESTAMP_GUIDE.md](./TIMESTAMP_GUIDE.md).
-
-## Specification Types
-
-The framework supports 14 specification types:
-
-### Core Specifications (11 types)
-- **Workflow** (W-xxx): User journeys and business processes
-- **Page** (P-xxx): UI pages and screens
-- **Concept** (C-xxx): Business entities and domain logic
-- **Data** (DATA-xxx): Data models and schemas
-- **Contract** (CONTRACT-xxx): API contracts and interfaces
-- **Integration** (INT-xxx): External system connections
-- **Security** (SEC-xxx): Security policies and controls
-- **Configuration** (CONFIG-xxx): System settings
-- **Technology** (TECH-xxx): Technology stack decisions
-- **Event** (EVENT-xxx): Async events and pub/sub patterns **[NEW]**
-- **Message** (MESSAGE-xxx): Message queues and commands **[NEW]**
-
-### Validation Specifications (3 types)
-- **Test Case** (TC-xxx): Individual test scenarios
-- **Scenario Case** (SC-xxx): End-to-end test flows organized into phases
-- **Precondition Case** (PC-xxx): Reusable setup/teardown
-
-See [SPEC_TYPE_GUIDE.md](./SPEC_TYPE_GUIDE.md) for detailed selection guidance.
-See [SCENARIO_PHASE_GUIDE.md](./SCENARIO_PHASE_GUIDE.md) for phase organization patterns.
-
-## Tools & Validation
-
-### Validation Tool
-```bash
-# Validate all specs
-./.specify/scripts/validate-specs.py /specs/
-
-# Validate specific file
-./.specify/scripts/validate-specs.py /specs/test-cases/TC-001.yaml
-
-# JSON output for CI/CD
-./.specify/scripts/validate-specs.py --json /specs/
-```
-
-### Staleness Detection
-```bash
-# Check for stale implementations
-./.specify/scripts/check-staleness.sh
-# or
-./.specify/scripts/check-staleness.py --verbose
-```
-
-### Test Stub Generation
-```bash
-# Generate test stub from case
-./.specify/scripts/generate-test-stub.py /specs/test-cases/TC-001.yaml pytest
-```
-
-## Commands
-
-### For Claude Code Users
-
-The project includes custom commands in `.claude/commands/`:
-
-- `/specify [requirements]` - Create or update specifications from natural language
-- `/constitution` - Update the project constitution
-
-## Benefits
-
-- **Dead Simple**: Just timestamps, no complex hashing or versioning
-- **Temporal Awareness**: Know exactly when specs changed and staleness duration
-- **Prioritized Updates**: Address oldest implementations first
-- **Low Maintenance**: Update timestamp on save - that's it
-- **CI/CD Ready**: Scripts return appropriate exit codes for automation
-- **No Special Tools**: Any editor can update a timestamp field
+- `/specify [requirements]` - Create specs from requirements
+- `/constitution` - Update constitution
+- `/plan` - Create implementation plan
+- `/tasks` - Generate task list
+- `/implement` - Execute tasks
+- `/analyze` - Analyze consistency
+- `/clarify` - Ask clarification questions
 
 ## Contributing
 
-1. Follow the constitution principles in `.specify/memory/constitution.md`
-2. Use templates from `.specify/templates/` for all new artifacts
-3. Run staleness detection before committing
-4. Update implementation hash references when specs change
+Contributions welcome! To contribute:
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test in a real project
+5. Submit a pull request
 
 ## License
 
-[Add your license here]
+[Specify your license]
+
+## Support
+
+- **Issues**: https://github.com/kjsdesigns/specifytest/issues
+- **Documentation**: See `.specify/memory/constitution.md` after installation
 
 ## Author
 
-Created with Specification-Driven Development principles and Claude Code assistance.
+Specification-Driven Development framework maintained by Keith Seim.

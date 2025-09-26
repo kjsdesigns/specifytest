@@ -1,0 +1,29 @@
+id: PC-[XXX]
+name: [descriptive-kebab-case-name]
+hash_timestamp: [ISO_8601_TIMESTAMP]  # Updated on every save (YYYY-MM-DDTHH:MM:SSZ)
+purpose: [What this precondition sets up]
+setup_steps:
+  - step: 1
+    action: [Setup action]
+    verification: [How to verify setup succeeded]
+  - step: 2
+    action: [Next setup step]
+    verification: [Verification]
+context_provided:
+  - name: [context_variable]
+    type: [type]
+    description: [What this provides to tests]
+validation_checks:
+  - [How to validate precondition is met]
+  - [Another validation]
+teardown_procedures:
+  - [How to clean up after]
+  - [Additional cleanup]
+compatibility:
+  - [What this works with]
+  - [Constraints or limitations]
+cache_strategy: [none|session|persistent]
+resources_touched:
+  - [Database tables]
+  - [Files]
+  - [Services]

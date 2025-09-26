@@ -1,0 +1,9 @@
+# Base YAML fields common to all Case specifications
+# These are the minimum required fields for any Case spec
+
+id: [TYPE]-[XXX]  # e.g., TC-001, SC-001, PC-001
+name: [descriptive-kebab-case-name]
+type: [CaseType]  # TestCase, ScenarioCase, or PreconditionCase
+status: draft  # draft, ready, active, deprecated
+related: []  # List of related spec IDs
+hash_timestamp: [ISO_8601_TIMESTAMP]  # Updated on every save (YYYY-MM-DDTHH:MM:SSZ)

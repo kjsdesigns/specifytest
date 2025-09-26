@@ -1,10 +1,13 @@
+<!-- See components/spec-header.md for header format -->
 ---
 id: C-[XXX]
+name: [descriptive-kebab-case-name]
 type: Concept
-name: [Concept Name]
 status: draft
-related: [Related spec IDs]
+related: []
+hash_timestamp: [ISO_8601_TIMESTAMP]  # Updated on every save
 ---
+
 # {name}
 
 ## Definition
@@ -49,13 +52,11 @@ related: [Related spec IDs]
 ## Anti-patterns
 [What this concept is NOT, common misconceptions]
 
-## Uncertainties
-[List any areas of uncertainty, ambiguity, or questions that need to be resolved]
-
 ## Domain Contract
+<!-- See components/spec-inline-contracts.yaml for common YAML patterns -->
 entity:
-  name: [EntityName]
-  table: [table_name]
+  name: [ENTITY_NAME]
+  table: [TABLE_NAME]
   fields:
     - name: id
       type: [string|number|boolean|datetime]
@@ -64,50 +65,45 @@ entity:
         primary: [true|false]
         required: [true|false]
         unique: [true|false]
-        maxLength: [number]
-    - name: [field_name]
-      type: [type]
+        maxLength: [NUMBER]
+    - name: [FIELD_NAME]
+      type: [TYPE]
       constraints: {}
   relationships:
-    - name: [relationship_name]
+    - name: [RELATIONSHIP_NAME]
       type: [hasOne|hasMany|belongsTo|manyToMany]
-      target: [TargetEntity]
-      foreign_key: [field_name]
-      through: [junction_table]  # For manyToMany
+      target: [TARGET_ENTITY]
+      foreign_key: [FOREIGN_KEY_FIELD]
+      through: [JUNCTION_TABLE]  # For manyToMany only
   invariants:
     - [Business rule that must always be true]
     - [Another invariant]
   indexes:
     - fields: [field1, field2]
       unique: [true|false]
-      name: [index_name]
+      name: [INDEX_NAME]
 
+<!-- See components/spec-validation-cases.md for validation case format -->
 ## Validation Cases
 
 ### Test Cases
-References to standalone test cases by file path that validate this spec:
-- /test-cases/TC-001.yaml: [Brief description of what this test validates]
-- /test-cases/TC-002.yaml: [Brief description of what this test validates]
-- /test-cases/TC-003.yaml: [Brief description of what this test validates]
+- [ ] [TC-XXX: Test description](/specs/test-cases/TC-XXX.yaml)
 
 ### Scenario Cases
-References to end-to-end scenarios by file path involving this spec:
-- /scenario-cases/SC-001.yaml: [Brief description of the scenario]
-- /scenario-cases/SC-002.yaml: [Brief description of the scenario]
+- [ ] [SC-XXX: Scenario description](/specs/scenario-cases/SC-XXX.yaml)
 
-### Notes
-- Test cases are defined in `/test-cases/` directory
-- Scenario cases are defined in `/scenario-cases/` directory
-- Precondition cases referenced by tests are in `/precondition-cases/` directory
-
+<!-- See components/spec-implementation-refs.md for implementation reference format -->
 ## Implementation References
-preconditions:
-  location: .specify/preconditions/
-  shared: [List of reusable precondition IDs]
-test_data:
-  fixtures: fixtures/[entity_name]/
-  factories: factories/[entity_name]Factory
+
+- Main implementation: `[PATH_TO_IMPLEMENTATION]`
+- Tests: `[PATH_TO_TESTS]`
+- Test data fixtures: `fixtures/[ENTITY_NAME]/`
+- Test factories: `factories/[ENTITY_NAME]Factory`
+
+<!-- See components/spec-uncertainties.md for uncertainties format -->
+## Uncertainties
+
+- [ ] [DESCRIBE_UNCERTAINTY]
 
 ## Glossary
-- **[Term 1]**: [Definition]
-- **[Term 2]**: [Definition]
+- **[TERM]**: [DEFINITION]

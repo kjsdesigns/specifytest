@@ -1,11 +1,10 @@
 id: TC-[XXX]
 name: [descriptive-kebab-case-name]
-content_hash: [SHA256_HASH]  # Auto-computed from YAML content
-hash_timestamp: [ISO_8601_TIMESTAMP]  # When hash was generated (YYYY-MM-DDTHH:MM:SSZ)
+hash_timestamp: [ISO_8601_TIMESTAMP]  # Updated on every save (YYYY-MM-DDTHH:MM:SSZ)
 purpose: [Why this test exists and what it validates]
 preconditions:
-  - PC-001  # Reference to precondition case
-  - PC-002  # Another precondition if needed
+  - /specs/precondition-cases/PC-001.yaml  # Reference to precondition case
+  - /specs/precondition-cases/PC-002.yaml  # Another precondition if needed
 steps:
   - step: 1
     action: [What to do]

@@ -1,14 +1,17 @@
+<!-- See components/spec-header.md for header format -->
 ---
-id: CON-XXX
+id: CONTRACT-[XXX]
+name: [descriptive-kebab-case-name]
 type: Contract
-name: [Contract Name]
 status: draft
 category: [api|data|ui|event|message]
 consumers: []
 providers: []
 related: []
+hash_timestamp: [ISO_8601_TIMESTAMP]  # Updated on every save (YYYY-MM-DDTHH:MM:SSZ)
 ---
-# [Contract Name]
+
+# {name}
 
 ## Purpose
 Define the shared contract/interface that multiple components use to communicate, ensuring consistency and compatibility across the system.
@@ -25,7 +28,7 @@ Define the shared contract/interface that multiple components use to communicate
 ### Interface
 ```typescript
 // TypeScript interface definition
-interface [ContractName] {
+interface {ContractName} {
   // Required fields
   field1: type;
   field2: type;
@@ -59,16 +62,16 @@ interface [ContractName] {
 ### field1
 - **Type**: string
 - **Required**: Yes
-- **Format**: [specific format if any]
-- **Validation**: [validation rules]
+- **Format**: [SPECIFIC_FORMAT]
+- **Validation**: [VALIDATION_RULES]
 - **Example**: "example_value"
 - **Description**: Detailed description of field purpose
 
 ### field2
 - **Type**: number
 - **Required**: Yes
-- **Range**: [min-max if applicable]
-- **Default**: [default value if any]
+- **Range**: [MIN_MAX]
+- **Default**: [DEFAULT_VALUE]
 - **Example**: 42
 - **Description**: Detailed description of field purpose
 
@@ -77,7 +80,7 @@ interface [ContractName] {
 ### Provider Implementation
 How providers should implement this contract:
 ```typescript
-class ProviderExample implements [ContractName] {
+class ProviderExample implements {ContractName} {
   // Implementation details
 }
 ```
@@ -85,7 +88,7 @@ class ProviderExample implements [ContractName] {
 ### Consumer Usage
 How consumers should use this contract:
 ```typescript
-function consumeContract(data: [ContractName]) {
+function consumeContract(data: {ContractName}) {
   // Usage example
 }
 ```
@@ -96,7 +99,7 @@ function consumeContract(data: [ContractName]) {
 
 ### Migration Guide
 Instructions for migrating between versions (when applicable):
-- From 0.9.x to 1.0.0: [migration steps]
+- From 0.9.x to 1.0.0: [MIGRATION_STEPS]
 
 ## Validation Rules
 Comprehensive validation requirements:
@@ -122,13 +125,13 @@ Comprehensive validation requirements:
 
 ## Providers
 List of components that provide/implement this contract:
-- [[Provider Component 1]](SPEC-ID): Description of what it provides
-- [[Provider Component 2]](SPEC-ID): Description of what it provides
+- [PROVIDER_COMPONENT_1] ([SPEC_ID]): Description of what it provides
+- [PROVIDER_COMPONENT_2] ([SPEC_ID]): Description of what it provides
 
 ## Consumers
 List of components that consume/use this contract:
-- [[Consumer Component 1]](SPEC-ID): How it uses the contract
-- [[Consumer Component 2]](SPEC-ID): How it uses the contract
+- [CONSUMER_COMPONENT_1] ([SPEC_ID]): How it uses the contract
+- [CONSUMER_COMPONENT_2] ([SPEC_ID]): How it uses the contract
 
 ## Examples
 
@@ -148,28 +151,21 @@ List of components that consume/use this contract:
 }
 ```
 
+<!-- See components/spec-validation-cases.md for validation case format -->
 ## Validation Cases
 
 ### Test Cases
-References to standalone test cases by file path that validate this spec:
-- /test-cases/TC-001.yaml: [Brief description of what this test validates]
-- /test-cases/TC-002.yaml: [Brief description of what this test validates]
-- /test-cases/TC-003.yaml: [Brief description of what this test validates]
+- [ ] [TC-XXX: Test description](/specs/test-cases/TC-XXX.yaml)
 
 ### Scenario Cases
-References to end-to-end scenarios by file path involving this spec:
-- /scenario-cases/SC-001.yaml: [Brief description of the scenario]
-- /scenario-cases/SC-002.yaml: [Brief description of the scenario]
+- [ ] [SC-XXX: Scenario description](/specs/scenario-cases/SC-XXX.yaml)
 
-### Notes
-- Test cases are defined in `/test-cases/` directory
-- Scenario cases are defined in `/scenario-cases/` directory
-- Precondition cases referenced by tests are in `/precondition-cases/` directory
-
+<!-- See components/spec-implementation-refs.md for implementation reference format -->
 ## Implementation References
-schema_location: contracts/[contract_name]/
-validation: src/contracts/[contract_name].validator.ts
-types: src/types/contracts/[contract_name].ts
+
+- Schema location: `contracts/[CONTRACT_NAME]/`
+- Validation: `src/contracts/[CONTRACT_NAME].validator.ts`
+- Types: `src/types/contracts/[CONTRACT_NAME].ts`
 
 ## Breaking Changes
 Track breaking changes and migration requirements:
@@ -187,7 +183,12 @@ Track breaking changes and migration requirements:
 - [ ] Authentication/authorization needs
 - [ ] Rate limiting considerations
 
+<!-- See components/spec-uncertainties.md for uncertainties format -->
+## Uncertainties
+
+- [ ] [DESCRIBE_UNCERTAINTY]
+
 ## Notes
-- [Special considerations]
-- [Known limitations]
-- [Future enhancements]
+- [SPECIAL_CONSIDERATIONS]
+- [KNOWN_LIMITATIONS]
+- [FUTURE_ENHANCEMENTS]

@@ -1,11 +1,13 @@
+<!-- See components/spec-header.md for header format -->
 ---
 id: INT-[XXX]
+name: [descriptive-kebab-case-name]
 type: Integration
-name: [Integration Name]
 status: draft
-service: [Service Name]
 related: []
+hash_timestamp: [ISO_8601_TIMESTAMP]  # Updated on every save
 ---
+
 # {name}
 
 ## Service Overview
@@ -261,29 +263,23 @@ versioning:
 - **Client Library**: [URL to client library if available]
 - **Support Contact**: [Email/URL for support]
 
+<!-- See components/spec-validation-cases.md for validation case format -->
 ## Validation Cases
 
 ### Test Cases
-References to standalone test cases by file path that validate this spec:
-- /test-cases/TC-001.yaml: [Brief description of what this test validates]
-- /test-cases/TC-002.yaml: [Brief description of what this test validates]
-- /test-cases/TC-003.yaml: [Brief description of what this test validates]
+- [ ] [TC-XXX: Test description](/specs/test-cases/TC-XXX.yaml)
 
 ### Scenario Cases
-References to end-to-end scenarios by file path involving this spec:
-- /scenario-cases/SC-001.yaml: [Brief description of the scenario]
-- /scenario-cases/SC-002.yaml: [Brief description of the scenario]
+- [ ] [SC-XXX: Scenario description](/specs/scenario-cases/SC-XXX.yaml)
 
-### Notes
-- Test cases are defined in `/test-cases/` directory
-- Scenario cases are defined in `/scenario-cases/` directory
-- Precondition cases referenced by tests are in `/precondition-cases/` directory
-
+<!-- See components/spec-implementation-refs.md for implementation reference format -->
 ## Implementation References
-- Client Library: `/src/integrations/[service_name]/`
-- Configuration: `/config/integrations/[service_name].yaml`
-- Mocks: `/tests/mocks/[service_name]/`
-- Monitoring Dashboard: [URL to dashboard]
 
+- Main implementation: `[path/to/implementation]`
+- Tests: `[path/to/tests]`
+- Configuration: `[path/to/config]`
+
+<!-- See components/spec-uncertainties.md for uncertainties format -->
 ## Uncertainties
-[List any uncertainties about the integration]
+
+- [ ] [Describe uncertainty or question]

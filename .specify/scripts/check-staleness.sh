@@ -1,18 +1,41 @@
 #!/bin/bash
 
-# Staleness Detection Tool
-# Scans implementation files for hash references and compares with current Case files
+# Staleness Detection Tool (Simplified Timestamp-Only Version)
+# Compares Case timestamps with implementation references
 # Usage: check-staleness.sh [directory]
 #
 # Output: Staleness report grouped by priority based on age
 
-set -e
+set -euo pipefail
+
+# Error handler
+error_exit() {
+    echo "Error: $1" >&2
+    exit ${2:-1}
+}
+
+# Trap errors
+trap 'error_exit "Script failed at line $LINENO"' ERR
 
 # Configuration
 REPO_ROOT="${1:-.}"  # Default to current directory if not specified
-TEST_CASES_DIR="$REPO_ROOT/test-cases"
-SCENARIO_CASES_DIR="$REPO_ROOT/scenario-cases"
-PRECONDITION_CASES_DIR="$REPO_ROOT/precondition-cases"
+
+# Validate directory exists
+if [[ ! -d "$REPO_ROOT" ]]; then
+    error_exit "Directory not found: $REPO_ROOT" 2
+fi
+
+TEST_CASES_DIR="$REPO_ROOT/specs/test-cases"
+SCENARIO_CASES_DIR="$REPO_ROOT/specs/scenario-cases"
+PRECONDITION_CASES_DIR="$REPO_ROOT/specs/precondition-cases"
+
+# Check if Case directories exist
+if [[ ! -d "$TEST_CASES_DIR" ]] && [[ ! -d "$SCENARIO_CASES_DIR" ]] && [[ ! -d "$PRECONDITION_CASES_DIR" ]]; then
+    echo "Warning: No Case directories found. Creating them..." >&2
+    mkdir -p "$TEST_CASES_DIR" "$SCENARIO_CASES_DIR" "$PRECONDITION_CASES_DIR"
+    echo "Info: Case directories created. No Cases to check yet." >&2
+    exit 0
+fi
 
 # Color codes for output
 RED='\033[0;31m'
@@ -25,26 +48,31 @@ declare -a CRITICAL_STALE  # >30 days
 declare -a HIGH_STALE      # 7-30 days
 declare -a MEDIUM_STALE    # 1-7 days
 declare -a LOW_STALE       # <1 day
-declare -a UP_TO_DATE      # Matching hashes
+declare -a UP_TO_DATE      # Matching timestamps
 
-# Function to extract hash and timestamp from Case file
-get_case_hash_info() {
+# Function to extract timestamp from Case file
+get_case_timestamp() {
     local case_file="$1"
 
-    if [ ! -f "$case_file" ]; then
-        echo "ERROR: File not found"
+    if [[ ! -f "$case_file" ]]; then
+        echo "ERROR: File not found" >&2
         return 1
     fi
 
-    local hash=$(grep '^content_hash:' "$case_file" 2>/dev/null | sed 's/content_hash: *//' | sed 's/sha256://')
     local timestamp=$(grep '^hash_timestamp:' "$case_file" 2>/dev/null | sed 's/hash_timestamp: *//')
 
-    if [ -z "$hash" ] || [ -z "$timestamp" ]; then
-        echo "ERROR: Missing hash or timestamp"
+    if [[ -z "$timestamp" ]]; then
+        echo "ERROR: Missing timestamp" >&2
         return 1
     fi
 
-    echo "$hash|$timestamp"
+    # Validate ISO 8601 format
+    if ! echo "$timestamp" | grep -qE '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z?$'; then
+        echo "ERROR: Invalid timestamp format" >&2
+        return 1
+    fi
+
+    echo "$timestamp"
 }
 
 # Function to calculate days between two ISO timestamps
@@ -68,11 +96,11 @@ calculate_days_diff() {
     echo "$days"
 }
 
-# Function to scan implementation files for hash references
+# Function to scan implementation files for timestamp references
 scan_implementation_files() {
     local search_dirs=("$REPO_ROOT/src" "$REPO_ROOT/tests" "$REPO_ROOT/test")
 
-    echo "Scanning for implementation files with hash references..."
+    echo "Scanning for implementation files with timestamp references..."
     echo ""
 
     for dir in "${search_dirs[@]}"; do
@@ -80,19 +108,17 @@ scan_implementation_files() {
             continue
         fi
 
-        # Find files with hash references (Python, JavaScript, TypeScript, etc.)
+        # Find files with timestamp references (Python, JavaScript, TypeScript, etc.)
         find "$dir" -type f \( -name "*.py" -o -name "*.js" -o -name "*.ts" -o -name "*.java" \) | while read -r impl_file; do
             # Look for patterns like:
             # Implements: /test-cases/TC-001.yaml
-            # Spec Hash: sha256:xxxxx
-            # Hash Timestamp: 2024-01-15T10:30:00Z
+            # Case Timestamp: 2024-01-15T10:30:00Z
 
             local case_ref=$(grep -E "Implements:.*\.(yaml|yml)" "$impl_file" 2>/dev/null | head -1 | sed 's/.*Implements: *//' | sed 's/[[:space:]]*$//')
-            local impl_hash=$(grep -E "Spec Hash:|Hash:" "$impl_file" 2>/dev/null | head -1 | sed 's/.*sha256://' | sed 's/[[:space:]\"]*$//' | cut -d' ' -f1)
-            local impl_timestamp=$(grep -E "Hash Timestamp:|Timestamp:" "$impl_file" 2>/dev/null | head -1 | sed 's/.*Timestamp: *//' | sed 's/[[:space:]\"]*$//')
+            local impl_timestamp=$(grep -E "Case Timestamp:|Timestamp:" "$impl_file" 2>/dev/null | head -1 | sed 's/.*Timestamp: *//' | sed 's/[[:space:]\"]*$//')
 
-            if [ -n "$case_ref" ] && [ -n "$impl_hash" ]; then
-                check_staleness "$impl_file" "$case_ref" "$impl_hash" "$impl_timestamp"
+            if [ -n "$case_ref" ] && [ -n "$impl_timestamp" ]; then
+                check_staleness "$impl_file" "$case_ref" "$impl_timestamp"
             fi
         done
     done
@@ -102,33 +128,29 @@ scan_implementation_files() {
 check_staleness() {
     local impl_file="$1"
     local case_ref="$2"
-    local impl_hash="$3"
-    local impl_timestamp="$4"
+    local impl_timestamp="$3"
 
     # Resolve case file path
     local case_file="$REPO_ROOT$case_ref"
 
-    # Get current case hash info
-    local case_info=$(get_case_hash_info "$case_file")
+    # Get current case timestamp
+    local case_timestamp=$(get_case_timestamp "$case_file")
 
-    if [[ "$case_info" == "ERROR:"* ]]; then
-        echo "  Warning: Cannot check $impl_file - $case_info for $case_ref"
+    if [[ "$case_timestamp" == "ERROR:"* ]]; then
+        echo "  Warning: Cannot check $impl_file - $case_timestamp for $case_ref"
         return
     fi
 
-    local case_hash=$(echo "$case_info" | cut -d'|' -f1)
-    local case_timestamp=$(echo "$case_info" | cut -d'|' -f2)
+    # Compare timestamps - simple comparison, Case timestamp > implementation timestamp means stale
+    local case_epoch=$(date -j -f "%Y-%m-%dT%H:%M:%SZ" "$case_timestamp" "+%s" 2>/dev/null || date -d "$case_timestamp" "+%s" 2>/dev/null || echo "0")
+    local impl_epoch=$(date -j -f "%Y-%m-%dT%H:%M:%SZ" "$impl_timestamp" "+%s" 2>/dev/null || date -d "$impl_timestamp" "+%s" 2>/dev/null || echo "0")
 
-    # Compare hashes
-    if [ "$impl_hash" = "$case_hash" ]; then
+    if [ "$case_epoch" -le "$impl_epoch" ]; then
+        # Implementation is up to date
         UP_TO_DATE+=("$impl_file → $case_ref")
     else
         # Calculate staleness in days
-        local days_stale=0
-        if [ -n "$impl_timestamp" ] && [ -n "$case_timestamp" ]; then
-            days_stale=$(calculate_days_diff "$impl_timestamp" "$case_timestamp")
-        fi
-
+        local days_stale=$(calculate_days_diff "$impl_timestamp" "$case_timestamp")
         local staleness_msg="$impl_file → $case_ref (${days_stale} days stale)"
 
         # Categorize by staleness
@@ -147,7 +169,7 @@ check_staleness() {
 # Function to print staleness report
 print_report() {
     echo "========================================"
-    echo "         STALENESS DETECTION REPORT     "
+    echo "    TIMESTAMP-BASED STALENESS REPORT   "
     echo "========================================"
     echo ""
 
@@ -191,7 +213,7 @@ print_report() {
 
     if [ ${#UP_TO_DATE[@]} -gt 0 ]; then
         echo -e "${GREEN}UP TO DATE:${NC}"
-        echo "  ✓ ${#UP_TO_DATE[@]} implementations match their specifications"
+        echo "  ✓ ${#UP_TO_DATE[@]} implementations match their specification timestamps"
         echo ""
     fi
 
@@ -227,6 +249,9 @@ print_report() {
 
     echo ""
     echo "========================================"
+    echo "Note: This uses simple timestamp comparison."
+    echo "Update Case file hash_timestamp on every save."
+    echo "========================================"
 
     # Exit with error code if critical issues found
     if [ ${#CRITICAL_STALE[@]} -gt 0 ]; then
@@ -240,7 +265,7 @@ print_report() {
 
 # Main execution
 main() {
-    echo "Staleness Detection Tool v1.0"
+    echo "Timestamp-Based Staleness Detection v2.0"
     echo "Repository: $REPO_ROOT"
     echo ""
 

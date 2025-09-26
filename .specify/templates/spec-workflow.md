@@ -1,10 +1,13 @@
+<!-- See components/spec-header.md for header format -->
 ---
 id: W-[XXX]
+name: [descriptive-kebab-case-name]
 type: Workflow
-name: [Workflow Name]
 status: draft
-related: [Related spec IDs]
+related: []
+hash_timestamp: [ISO_8601_TIMESTAMP]  # Updated on every save
 ---
+
 # {name}
 
 ## Overview
@@ -122,36 +125,26 @@ endpoints:
       p95: < [N]ms
       p99: < [N]ms
 
+<!-- See components/spec-validation-cases.md for validation case format -->
 ## Validation Cases
 
 ### Test Cases
-References to standalone test cases by file path that validate this workflow:
-- /test-cases/TC-001.yaml: [Brief description of what this test validates]
-- /test-cases/TC-002.yaml: [Brief description of what this test validates]
-- /test-cases/TC-003.yaml: [Brief description of what this test validates]
+- [ ] [TC-XXX: Test description](/specs/test-cases/TC-XXX.yaml)
 
 ### Scenario Cases
-References to end-to-end scenarios by file path involving this workflow:
-- /scenario-cases/SC-001.yaml: [Brief description of the scenario]
-- /scenario-cases/SC-002.yaml: [Brief description of the scenario]
+- [ ] [SC-XXX: Scenario description](/specs/scenario-cases/SC-XXX.yaml)
 
-### Notes
-- Test cases are defined in `/test-cases/` directory
-- Scenario cases are defined in `/scenario-cases/` directory
-- Precondition cases referenced by tests are in `/precondition-cases/` directory
-
+<!-- See components/spec-implementation-refs.md for implementation reference format -->
 ## Implementation References
-preconditions:
-  location: /precondition-cases/
-  shared: [List of reusable precondition IDs]
-api_client:
-  location: tests/api/
-  class: [WorkflowName]ApiClient
-test_data:
-  fixtures: fixtures/workflows/[workflow_name]/
 
+- Workflow implementation: `[path/to/workflow/implementation]`
+- API endpoints: `[path/to/api/endpoints]`
+- Tests: `[path/to/workflow/tests]`
+
+<!-- See components/spec-uncertainties.md for uncertainties format -->
 ## Uncertainties
-[List any areas of uncertainty, ambiguity, or questions that need to be resolved]
+
+- [ ] [Describe uncertainty or question]
 
 ## Related Workflows
 - **[Workflow Name]**: [Relationship]

@@ -65,46 +65,41 @@ For each affected spec:
 - Ensure all references use independent Case IDs (TC-xxx, SC-xxx, PC-xxx)
 
 ### 6. Case Generation
-Create standalone Case files:
-- **Test Cases**: Create TC-xxx.yaml files in `/test-cases/`
-  - Use `.specify/templates/test-case-template.yaml`
-  - Assign next available TC number
-  - Reference needed PC-xxx preconditions
-  - Compute content_hash and hash_timestamp after creation
-- **Scenario Cases**: Create SC-xxx.yaml files in `/scenario-cases/`
-  - Use `.specify/templates/scenario-case-template.yaml`
-  - Assign next available SC number
-  - Reference TC-xxx tests and PC-xxx preconditions
-  - Compute content_hash and hash_timestamp after creation
-- **Precondition Cases**: Create PC-xxx.yaml files in `/precondition-cases/`
-  - Use `.specify/templates/precondition-case-template.yaml`
-  - Assign next available PC number
-  - Ensure self-contained (no references to other artifacts)
-  - Compute content_hash and hash_timestamp after creation
+Create standalone Case files with timestamps:
+- **Test Cases** (TC-xxx.yaml in `/specs/test-cases/`)
+- **Scenario Cases** (SC-xxx.yaml in `/specs/scenario-cases/`)
+- **Precondition Cases** (PC-xxx.yaml in `/specs/precondition-cases/`)
 
-### 6a. Hash and Timestamp Generation
-For each Case file created:
-- Compute content_hash as SHA-256 of canonical YAML (excluding hash fields)
-- Generate hash_timestamp in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)
-- Use `.specify/scripts/compute-case-hash.sh` if available, or inline computation
-- Ensure both fields are populated before finalizing the Case file
+For each Case:
+- Use appropriate template from `.specify/templates/` (spec-test-case.yaml, spec-scenario-case.yaml, spec-precondition-case.yaml)
+- Assign next available ID number
+- Set hash_timestamp to current UTC time (YYYY-MM-DDTHH:MM:SSZ)
+- Update timestamp on every modification
+- Validate timestamp format is valid ISO 8601
 
-### 8. Update Spec Validation Cases
+### 7. Update Spec Validation Cases
 For each spec, update the `validation_cases` section:
 ```markdown
 ## Validation Cases
 
 ### Test Cases
 References to standalone test cases that validate this spec:
-- TC-001: Login with valid credentials
-- TC-002: Login with invalid password
-- TC-003: Password reset flow
+- /specs/test-cases/TC-001.yaml: Login with valid credentials
+- /specs/test-cases/TC-002.yaml: Login with invalid password
+- /specs/test-cases/TC-003.yaml: Password reset flow
 
 ### Scenario Cases
 References to end-to-end scenarios involving this spec:
-- SC-001: Complete user authentication journey
-- SC-002: Account recovery process
+- /specs/scenario-cases/SC-001.yaml: Complete user authentication journey
+- /specs/scenario-cases/SC-002.yaml: Account recovery process
 ```
+
+### 8. Timestamp Validation
+Before completing, validate all timestamps:
+- Check all Case files have valid ISO 8601 timestamps
+- Format: YYYY-MM-DDTHH:MM:SSZ (e.g., 2024-01-15T10:30:00Z)
+- Report any invalid timestamps found
+- Fail if any timestamp is malformed
 
 ### 9. Output Summary
 Report all changes:
@@ -129,14 +124,14 @@ For "User authentication with email/password":
 - `/specs/security/SEC-001-auth/spec.md` - Password policy, sessions
 
 **Creates Standalone Cases:**
-- `/test-cases/TC-001.yaml` - Login with valid credentials
-- `/test-cases/TC-002.yaml` - Login with invalid password
-- `/test-cases/TC-003.yaml` - Registration with new email
-- `/test-cases/TC-004.yaml` - Password reset request
-- `/scenario-cases/SC-001.yaml` - Complete authentication flow
-- `/scenario-cases/SC-002.yaml` - Account recovery journey
-- `/precondition-cases/PC-001.yaml` - Database with test users
-- `/precondition-cases/PC-002.yaml` - Clean browser session
+- `/specs/test-cases/TC-001.yaml` - Login with valid credentials (timestamp: 2024-01-15T10:30:00Z)
+- `/specs/test-cases/TC-002.yaml` - Login with invalid password (timestamp: 2024-01-15T10:31:00Z)
+- `/specs/test-cases/TC-003.yaml` - Registration with new email (timestamp: 2024-01-15T10:32:00Z)
+- `/specs/test-cases/TC-004.yaml` - Password reset request (timestamp: 2024-01-15T10:33:00Z)
+- `/specs/scenario-cases/SC-001.yaml` - Complete authentication flow (timestamp: 2024-01-15T11:00:00Z)
+- `/specs/scenario-cases/SC-002.yaml` - Account recovery journey (timestamp: 2024-01-15T11:05:00Z)
+- `/specs/precondition-cases/PC-001.yaml` - Database with test users (timestamp: 2024-01-15T09:00:00Z)
+- `/specs/precondition-cases/PC-002.yaml` - Clean browser session (timestamp: 2024-01-15T09:05:00Z)
 
 ## Important Notes
 - DO NOT create inline test cases in specs

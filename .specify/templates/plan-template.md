@@ -7,34 +7,16 @@
 **Input**: Modular specifications from `/specs/*` relevant to this plan
 
 ## Execution Flow (/plan command scope)
-```
-1. Identify relevant modular specs from `/specs/*` directories
-   → Load specs based on plan requirements
-   → If critical specs missing: ERROR "Required specs not found"
-2. Fill Technical Context (scan for NEEDS CLARIFICATION)
-   → Detect Project Type from context (web=frontend+backend, mobile=app+api)
-   → Set Structure Decision based on project type
-3. Fill the Constitution Check section based on Test-Driven Development principles
-4. Evaluate Constitution Check section below
-   → Verify TDD compliance (Test Cases defined before implementation)
-   → Check Single Source of Truth (no duplicate Case definitions)
-   → Validate identifier standards and documentation completeness
-   → If violations exist: Document in Complexity Tracking
-   → If no justification possible: ERROR "Fix violations first"
-   → Update Progress Tracking: Initial Constitution Check
-5. Execute Phase 0 → update relevant modular specs with research
-   → If NEEDS CLARIFICATION remain: ERROR "Resolve unknowns"
-6. Execute Phase 1 → update modular specs with contracts, data models, quickstart docs, agent-specific template file (e.g., `CLAUDE.md` for Claude Code, `.github/copilot-instructions.md` for GitHub Copilot, `GEMINI.md` for Gemini CLI, `QWEN.md` for Qwen Code or `AGENTS.md` for opencode).
-7. Re-evaluate Constitution Check section
-   → If new violations: Refactor design, return to Phase 1
-   → Update Progress Tracking: Post-Design Constitution Check
-8. Plan Phase 2 → Describe task generation approach (DO NOT create tasks.md)
-9. STOP - Ready for /tasks command
-```
+1. Load relevant modular specs from `/specs/*` directories
+2. Fill Technical Context (identify any NEEDS CLARIFICATION items)
+3. Evaluate Constitution Check for TDD compliance
+4. Execute Phase 0: Research and update specs
+5. Execute Phase 1: Design contracts, data models, and documentation
+6. Re-evaluate Constitution Check
+7. Plan Phase 2: Describe task generation approach (DO NOT create tasks.md)
+8. STOP - Ready for /tasks command
 
-**IMPORTANT**: The /plan command STOPS at step 7. Phases 2-4 are executed by other commands:
-- Phase 2: /tasks command creates tasks.md
-- Phase 3-4: Implementation execution (manual or via tools)
+**Note**: The /plan command stops after planning. The /tasks command creates tasks.md.
 
 ## Summary
 [Extract from relevant modular specs: primary requirements + technical approach from research]
@@ -65,20 +47,20 @@
 *Lists all Test Cases, Scenario Cases, and Precondition Cases to be created/updated with file paths*
 
 ### Test Cases
-Test cases to create/update in `/test-cases/`:
-- /test-cases/TC-001.yaml: [Description] - Status: [New/Update]
-- /test-cases/TC-002.yaml: [Description] - Status: [New/Update]
-- /test-cases/TC-003.yaml: [Description] - Status: [New/Update]
+Test cases to create/update in `/specs/test-cases/`:
+- /specs/test-cases/TC-001.yaml: [Description] - Status: [New/Update]
+- /specs/test-cases/TC-002.yaml: [Description] - Status: [New/Update]
+- /specs/test-cases/TC-003.yaml: [Description] - Status: [New/Update]
 
 ### Scenario Cases
-Scenario cases to create/update in `/scenario-cases/`:
-- /scenario-cases/SC-001.yaml: [Description] - Status: [New/Update]
-- /scenario-cases/SC-002.yaml: [Description] - Status: [New/Update]
+Scenario cases to create/update in `/specs/scenario-cases/`:
+- /specs/scenario-cases/SC-001.yaml: [Description] - Status: [New/Update]
+- /specs/scenario-cases/SC-002.yaml: [Description] - Status: [New/Update]
 
 ### Precondition Cases
-Precondition cases to create/update in `/precondition-cases/`:
-- /precondition-cases/PC-001.yaml: [Description] - Status: [New/Update]
-- /precondition-cases/PC-002.yaml: [Description] - Status: [New/Update]
+Precondition cases to create/update in `/specs/precondition-cases/`:
+- /specs/precondition-cases/PC-001.yaml: [Description] - Status: [New/Update]
+- /specs/precondition-cases/PC-002.yaml: [Description] - Status: [New/Update]
 
 ## Technical Context
 **Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
@@ -185,103 +167,36 @@ ios/ or android/
 **Structure Decision**: [DEFAULT to Option 1 unless Technical Context indicates web/mobile app]
 
 ## Phase 0: Outline & Research
-1. **Extract unknowns from Technical Context** above:
-   - For each NEEDS CLARIFICATION → research task
-   - For each dependency → best practices task
-   - For each integration → patterns task
+1. Extract unknowns from Technical Context
+2. Research dependencies and best practices
+3. Update relevant modular specs with findings:
+   - Technology decisions → `/specs/technology/`
+   - Data research → `/specs/data/`
+   - Integration patterns → `/specs/integrations/`
 
-2. **Generate and dispatch research agents**:
-   ```
-   For each unknown in Technical Context:
-     Task: "Research {unknown} for {plan context}"
-   For each technology choice:
-     Task: "Find best practices for {tech} in {domain}"
-   ```
-
-3. **Update relevant modular specs** with findings:
-   - Technology decisions → `/specs/technology/[TECH-xxx]/spec.md`
-   - Data research → `/specs/data/[DATA-xxx]/spec.md`
-   - Integration patterns → `/specs/integrations/[INT-xxx]/spec.md`
-   - Format: Decision, Rationale, Alternatives considered
-
-**Output**: Updated modular specs with all NEEDS CLARIFICATION resolved
+**Output**: Updated specs with all unknowns resolved
 
 ## Phase 1: Design & Contracts
-*Prerequisites: Research phase complete in modular specs*
+1. Update data specs with entities and validation rules
+2. Update contract specs with endpoint specifications
+3. Generate failing contract tests
+4. Update workflow specs with test scenarios
+5. Update agent context file if needed
 
-1. **Update data specs** with entities:
-   - Create/update `/specs/data/[DATA-xxx]/spec.md`
-   - Entity definitions, fields, relationships
-   - Validation rules from requirements
-   - State transitions if applicable
-
-2. **Update contract specs** from functional requirements:
-   - Create/update `/specs/contracts/[CONTRACT-xxx]/spec.md`
-   - For each user action → endpoint specification
-   - Use standard REST/GraphQL patterns
-   - Output OpenAPI/GraphQL schemas
-
-3. **Generate contract tests** from contract specs:
-   - One test file per endpoint
-   - Assert request/response schemas
-   - Tests must fail (no implementation yet)
-
-4. **Update workflow specs** with test scenarios:
-   - Update `/specs/workflows/[W-xxx]/spec.md`
-   - Each user story → integration test scenario
-   - Quickstart test = story validation steps
-
-5. **Update agent file incrementally** (O(1) operation):
-   - Run `.specify/scripts/bash/update-agent-context.sh claude`
-     **IMPORTANT**: Execute it exactly as specified above. Do not add or remove any arguments.
-   - If exists: Add only NEW tech from current plan
-   - Preserve manual additions between markers
-   - Update recent changes (keep last 3)
-   - Keep under 150 lines for token efficiency
-   - Output to repository root
-
-**Output**:
-- Updated `/specs/data/[DATA-xxx]/spec.md` - Data design decisions
-- Updated `/specs/contracts/[CONTRACT-xxx]/spec.md` - API specifications
-- Updated workflow/page specs with quickstart documentation
-- Failing tests in implementation directories
-- Agent-specific file at repository root
+**Output**: Updated specs, failing tests, and documentation
 
 ## Phase 2: Task Planning Approach
-*This section describes what the /tasks command will do - DO NOT execute during /plan*
+*Describes what /tasks command will do - not executed by /plan*
 
-**Task Generation Strategy**:
-- Load `.specify/templates/tasks-template.md` as base
-- For each gap identified in Delta Analysis:
-  - Generate tasks to close the gap
-  - Reference baseline spec IDs
-  - List Test/Scenario Cases to develop/pass
-- Each contract spec → contract test task [P]
-- Each data spec entity → model creation task [P]
-- Each workflow spec story → integration test task
-- Implementation tasks to make tests pass
-- Output to `/plans/[plan-name]/tasks.md`
+**Strategy**: Generate tasks from Delta Analysis gaps
+- Tests before implementation (TDD)
+- Mark [P] for parallel execution
+- Reference baseline specs and Cases
 
-**Task Requirements per Constitution**:
-- Each task MUST reference baseline specs
-- Each task MUST list Test/Scenario Case IDs to implement
-- Each task MUST define success criteria
+**Output**: Tasks in `/plans/[plan-name]/tasks.md` (created by /tasks command)
 
-**Ordering Strategy**:
-- TDD order: Tests before implementation 
-- Dependency order: Models before services before UI
-- Mark [P] for parallel execution (independent files)
-
-**Estimated Output**: 25-30 numbered, ordered tasks in `/plans/[plan-name]/tasks.md`
-
-**IMPORTANT**: This phase is executed by the /tasks command, NOT by /plan
-
-## Phase 3+: Future Implementation
-*These phases are beyond the scope of the /plan command*
-
-**Phase 3**: Task execution (/tasks command creates tasks.md)  
-**Phase 4**: Implementation (execute tasks.md following constitutional principles)  
-**Phase 5**: Validation (run tests, execute quickstart.md, performance validation)
+## Phases 3-5: Implementation
+*Beyond /plan scope - handled by /tasks and implementation commands*
 
 ## Complexity Tracking
 *Fill ONLY if Constitution Check has violations that must be justified*
@@ -310,4 +225,4 @@ ios/ or android/
 - [ ] Complexity deviations documented
 
 ---
-*Based on Constitution v3.1.0 - See `.specify/memory/constitution.md`*
+*Based on current Constitution - See `.specify/memory/constitution.md`*

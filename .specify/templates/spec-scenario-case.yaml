@@ -1,0 +1,110 @@
+# Scenario Case Specification Template
+# Defines end-to-end test scenarios with phase-based organization
+
+id: SC-[XXX]
+name: [descriptive-kebab-case-name]
+type: ScenarioCase
+status: draft
+related: []
+hash_timestamp: [ISO_8601_TIMESTAMP]  # Updated on every save (YYYY-MM-DDTHH:MM:SSZ)
+
+purpose: |
+  [End-to-end scenario description - what business flow or user journey this covers]
+
+# Phase-Based Organization (RECOMMENDED)
+# Organize preconditions and test cases into logical phases for better readability and execution tracking
+phases:
+  - phase_id: setup
+    phase_name: "Setup & Preparation"
+    description: "Initialize environment, prepare test data, establish preconditions"
+    preconditions:
+      - path: /specs/precondition-cases/PC-[XXX].yaml
+        description: "[What this precondition provides]"
+      - path: /specs/precondition-cases/PC-[XXX].yaml
+        description: "[Additional setup requirement]"
+    test_cases: []  # Typically empty for setup phase
+
+  - phase_id: phase_1
+    phase_name: "[Phase 1 Name]"
+    description: "[What this phase tests or accomplishes]"
+    preconditions:
+      - path: /specs/precondition-cases/PC-[XXX].yaml
+        description: "[Phase-specific precondition]"
+    test_cases:
+      - path: /specs/test-cases/TC-[XXX].yaml
+        description: "[What this test validates]"
+      - path: /specs/test-cases/TC-[XXX].yaml
+        description: "[Next test in sequence]"
+
+  - phase_id: phase_2
+    phase_name: "[Phase 2 Name]"
+    description: "[What this phase tests or accomplishes]"
+    preconditions: []  # Can be empty if no additional setup needed
+    test_cases:
+      - path: /specs/test-cases/TC-[XXX].yaml
+        description: "[Test description]"
+
+  - phase_id: verification
+    phase_name: "Verification & Assertions"
+    description: "Verify end state and business rules"
+    preconditions: []
+    test_cases:
+      - path: /specs/test-cases/TC-[XXX].yaml
+        description: "[Final state verification]"
+
+  - phase_id: cleanup
+    phase_name: "Cleanup & Teardown"
+    description: "Restore original state, remove test data"
+    preconditions: []
+    test_cases:
+      - path: /specs/test-cases/TC-[XXX].yaml
+        description: "[Cleanup validation]"
+
+# Phase Execution Configuration
+phase_execution:
+  mode: sequential  # sequential | parallel_phases | custom
+  continue_on_failure: false  # true = continue to next phase even if current fails
+  phase_timeout: 300  # Max seconds per phase (optional, overrides scenario timeout)
+  phase_dependencies:  # Optional: explicit dependencies between phases
+    phase_1: [setup]
+    phase_2: [setup, phase_1]
+    verification: [phase_1, phase_2]
+    cleanup: [setup, phase_1, phase_2, verification]
+
+# Nested Scenarios (Optional)
+# Include other scenarios as sub-scenarios
+nested_scenarios:
+  - path: /specs/scenario-cases/SC-[XXX].yaml
+    description: "[When to execute this nested scenario]"
+    phase: phase_1  # Which phase this belongs to (optional)
+
+# Scenario Configuration
+timeout: [SECONDS]  # Total scenario timeout in seconds
+cache_strategy: none  # none | session | persistent
+retry_on_failure: false  # true = retry entire scenario on failure
+max_retries: 0  # Number of retries if retry_on_failure is true
+
+# Expected Outcomes
+expected_outcomes:
+  - "[Business outcome 1 - what should be true after scenario completes]"
+  - "[Business outcome 2]"
+
+# Success Criteria
+success_criteria:
+  - "[Measurable criterion 1 - how to determine if scenario succeeded]"
+  - "[Measurable criterion 2]"
+
+# Environment Requirements
+environment:
+  - "[Required environment setting or condition]"
+
+# Data Requirements
+data_requirements:
+  - "[Test data needed for this scenario]"
+
+# Notes
+notes: |
+  [Additional context, gotchas, or important information about this scenario]
+
+# Tags for categorization and filtering
+tags: []  # e.g., [smoke, regression, critical, integration]

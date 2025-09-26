@@ -19,7 +19,16 @@
 #   Text mode: FEATURE_DIR:... \n AVAILABLE_DOCS: \n ✓/✗ file.md
 #   Paths only: REPO_ROOT: ... \n BRANCH: ... \n FEATURE_DIR: ... etc.
 
-set -e
+set -euo pipefail
+
+# Error handler
+error_exit() {
+    echo "Error: $1" >&2
+    exit ${2:-1}
+}
+
+# Trap errors
+trap 'error_exit "Script failed at line $LINENO"' ERR
 
 # Parse command line arguments
 JSON_MODE=false

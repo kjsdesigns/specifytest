@@ -1,10 +1,13 @@
+<!-- See components/spec-header.md for header format -->
 ---
-id: PC-[XXX]
+id: P-[XXX]  # Note: P for Page, not PC which is for Precondition Cases
+name: [descriptive-kebab-case-name]
 type: Page
-name: [Page Name]
 status: draft
-related: [Related spec IDs]
+related: []
+hash_timestamp: [ISO_8601_TIMESTAMP]  # Updated on every save
 ---
+
 # {name}
 
 ## Purpose
@@ -105,33 +108,23 @@ components:
       role: [role]
       tab_index: [number]
 
+<!-- See components/spec-validation-cases.md for validation case format -->
 ## Validation Cases
 
 ### Test Cases
-References to standalone test cases by file path that validate this spec:
-- /test-cases/TC-001.yaml: [Brief description of what this test validates]
-- /test-cases/TC-002.yaml: [Brief description of what this test validates]
-- /test-cases/TC-003.yaml: [Brief description of what this test validates]
+- [ ] [TC-XXX: Test description](/specs/test-cases/TC-XXX.yaml)
 
 ### Scenario Cases
-References to end-to-end scenarios by file path involving this spec:
-- /scenario-cases/SC-001.yaml: [Brief description of the scenario]
-- /scenario-cases/SC-002.yaml: [Brief description of the scenario]
+- [ ] [SC-XXX: Scenario description](/specs/scenario-cases/SC-XXX.yaml)
 
-### Notes
-- Test cases are defined in `/test-cases/` directory
-- Scenario cases are defined in `/scenario-cases/` directory
-- Precondition cases referenced by tests are in `/precondition-cases/` directory
-
+<!-- See components/spec-implementation-refs.md for implementation reference format -->
 ## Implementation References
-preconditions:
-  location: .specify/preconditions/
-  shared: [List of reusable precondition IDs]
-page_objects:
-  class: [PageName]Page
-  location: tests/page-objects/
-test_data:
-  fixtures: fixtures/pages/[page_name]/
 
+- Page component: `[path/to/page/component]`
+- Page tests: `[path/to/page/tests]`
+- Page objects: `[path/to/page/objects]`
+
+<!-- See components/spec-uncertainties.md for uncertainties format -->
 ## Uncertainties
-[List any areas of uncertainty, ambiguity, or questions that need to be resolved]
+
+- [ ] [Describe uncertainty or question]

@@ -4,36 +4,16 @@
 **Prerequisites**: plan.md with git_commit_sha and delta analysis (required), baseline modular specs
 **Purpose**: Bridge the gap between current codebase state and target spec compliance using file path references
 
-## Execution Flow (main)
-```
-1. Load plan.md from /plans/[plan-name]/ directory
-   → If not found: ERROR "No implementation plan found"
-   → Extract: Delta Analysis section (current vs target state)
-   → Extract: tech stack, libraries, structure, baseline spec IDs
-2. Load baseline specs from /specs/*/ based on plan references:
-   → /specs/data/*/spec.md: Extract entities → model tasks
-   → /specs/contracts/*/spec.md: Each contract → contract test task
-   → /specs/technology/*/spec.md: Extract decisions → setup tasks
-   → /specs/workflows/*/spec.md: Extract test cases → test implementation tasks
-3. Generate tasks from Delta Analysis:
-   → For each gap identified:
-     - Create task with baseline spec reference
-     - List Test/Scenario Cases to implement/pass
-     - Define success criteria from spec
-   → Categories: Setup, Tests (TDD), Core, Integration, Polish
-4. Apply task rules:
-   → Different files = mark [P] for parallel
-   → Same file = sequential (no [P])
-   → Tests before implementation (TDD)
-5. Number tasks sequentially (T001, T002...)
-6. Generate dependency graph
-7. Create parallel execution examples
-8. Validate task completeness:
-   → All contracts have tests?
-   → All entities have models?
-   → All endpoints implemented?
-9. Return: SUCCESS (tasks ready for execution)
-```
+## Task Generation Process
+
+1. **Load plan.md** from `/plans/[plan-name]/` with delta analysis
+2. **Extract baseline specs** to identify required implementations
+3. **Generate tasks** from gaps between current and target state
+4. **Apply ordering**:
+   - Tests before implementation (TDD)
+   - Mark parallel tasks with [P] (different files)
+   - Number sequentially (T001, T002...)
+5. **Validate completeness** before execution
 
 ## Task Format
 
@@ -41,13 +21,13 @@
 ```
 [ID] [P?] Task Title
   Validates Specs: /specs/workflows/W-001/spec.md, /specs/pages/P-002/spec.md
-  Implements Cases: /test-cases/TC-001.yaml, /test-cases/TC-002.yaml
-  Uses Preconditions: /precondition-cases/PC-001.yaml, /precondition-cases/PC-002.yaml
+  Implements Cases: /specs/specs/test-cases/TC-001.yaml, /specs/specs/test-cases/TC-002.yaml
+  Uses Preconditions: /specs/specs/precondition-cases/PC-001.yaml, /specs/specs/precondition-cases/PC-002.yaml
   Current State: [what exists now]
   Target State: [what spec requires]
   Success Criteria: [measurable outcome]
   Implementation File: [exact path to modify/create]
-  Hash References: [content hashes with timestamps to embed in implementation]
+  Timestamp Reference: [Case timestamp to embed in implementation]
 ```
 
 - **[P]**: Can run in parallel (different files, no dependencies)
@@ -69,65 +49,65 @@
 
 - [ ] T004 [P] Contract test POST /api/users
   - Validates Specs: /specs/contracts/CONTRACT-001/spec.md
-  - Implements Cases: /test-cases/TC-004.yaml, /test-cases/TC-005.yaml
-  - Uses Preconditions: /precondition-cases/PC-001.yaml
+  - Implements Cases: /specs/test-cases/TC-004.yaml, /specs/test-cases/TC-005.yaml
+  - Uses Preconditions: /specs/precondition-cases/PC-001.yaml
   - Current State: No test exists
   - Target State: Failing contract test per spec
   - Success Criteria: Test exists and fails (no implementation)
   - Implementation File: tests/contract/test_users_post.py
-  - Hash References: TC-004 (sha256:abc123..., 2024-01-15T10:30:00Z), TC-005 (sha256:def456..., 2024-01-15T10:31:00Z)
+  - Timestamp References: TC-004 (2024-01-15T10:30:00Z), TC-005 (2024-01-15T10:31:00Z)
 
 - [ ] T005 [P] Contract test GET /api/users/{id}
   - Validates Specs: /specs/contracts/CONTRACT-001/spec.md
-  - Implements Cases: /test-cases/TC-006.yaml
-  - Uses Preconditions: /precondition-cases/PC-001.yaml, /precondition-cases/PC-002.yaml
+  - Implements Cases: /specs/test-cases/TC-006.yaml
+  - Uses Preconditions: /specs/precondition-cases/PC-001.yaml, /specs/precondition-cases/PC-002.yaml
   - Current State: No test exists
   - Target State: Failing contract test per spec
   - Success Criteria: Test exists and fails
   - Implementation File: tests/contract/test_users_get.py
-  - Hash References: TC-006 (sha256:789abc..., 2024-01-15T10:32:00Z)
+  - Timestamp Reference: TC-006 (2024-01-15T10:32:00Z)
 
 - [ ] T006 [P] Integration test user registration
   - Validates Specs: /specs/workflows/W-001/spec.md
-  - Implements Cases: /scenario-cases/SC-001.yaml
-  - Uses Preconditions: /precondition-cases/PC-001.yaml, /precondition-cases/PC-003.yaml
+  - Implements Cases: /specs/scenario-cases/SC-001.yaml
+  - Uses Preconditions: /specs/precondition-cases/PC-001.yaml, /specs/precondition-cases/PC-003.yaml
   - Current State: No test coverage
   - Target State: End-to-end test per workflow spec
   - Success Criteria: Test validates full registration flow
   - Implementation File: tests/integration/test_registration.py
-  - Hash References: SC-001 (sha256:def789..., 2024-01-15T11:00:00Z)
+  - Timestamp Reference: SC-001 (2024-01-15T11:00:00Z)
 
 ## Phase 3.3: Core Implementation (ONLY after tests are failing)
 
 - [ ] T008 [P] User model implementation
   - Validates Specs: /specs/data/DATA-001/spec.md
-  - Implements Cases: /test-cases/TC-007.yaml, /test-cases/TC-008.yaml
-  - Uses Preconditions: /precondition-cases/PC-004.yaml
+  - Implements Cases: /specs/test-cases/TC-007.yaml, /specs/test-cases/TC-008.yaml
+  - Uses Preconditions: /specs/precondition-cases/PC-004.yaml
   - Current State: No model exists
   - Target State: Model matching spec schema
   - Success Criteria: Model passes all spec validation rules
   - Implementation File: src/models/user.py
-  - Hash References: DATA-001 (sha256:aaa111..., 2024-01-15T09:00:00Z)
+  - Timestamp Reference: DATA-001 (2024-01-15T09:00:00Z)
 
 - [ ] T009 [P] UserService CRUD operations
   - Validates Specs: /specs/concepts/C-001/spec.md
-  - Implements Cases: /test-cases/TC-009.yaml through /test-cases/TC-013.yaml
-  - Uses Preconditions: /precondition-cases/PC-001.yaml, /precondition-cases/PC-004.yaml
+  - Implements Cases: /specs/test-cases/TC-009.yaml through /specs/test-cases/TC-013.yaml
+  - Uses Preconditions: /specs/precondition-cases/PC-001.yaml, /specs/precondition-cases/PC-004.yaml
   - Current State: No service layer
   - Target State: Service implementing business rules
   - Success Criteria: All CRUD operations per spec
   - Implementation File: src/services/user_service.py
-  - Hash References: C-001 (sha256:bbb222..., 2024-01-15T09:15:00Z)
+  - Timestamp Reference: C-001 (2024-01-15T09:15:00Z)
 
 - [ ] T011 POST /api/users endpoint
   - Validates Specs: /specs/contracts/CONTRACT-001/spec.md
-  - Implements Cases: /test-cases/TC-004.yaml, /test-cases/TC-005.yaml
-  - Uses Preconditions: /precondition-cases/PC-001.yaml
+  - Implements Cases: /specs/test-cases/TC-004.yaml, /specs/test-cases/TC-005.yaml
+  - Uses Preconditions: /specs/precondition-cases/PC-001.yaml
   - Current State: Test failing (from T004)
   - Target State: Endpoint passes contract test
   - Success Criteria: Contract test T004 passes
   - Implementation File: src/api/users.py
-  - Hash References: CONTRACT-001 (sha256:ccc333..., 2024-01-15T09:20:00Z)
+  - Timestamp Reference: CONTRACT-001 (2024-01-15T09:20:00Z)
 
 ## Phase 3.4: Integration
 - [ ] T015 Connect UserService to DB

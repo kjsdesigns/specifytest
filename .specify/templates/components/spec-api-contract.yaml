@@ -1,0 +1,195 @@
+# API Contract Component
+# Reusable pattern for defining API endpoints and contracts
+# Reference this component in templates with: <!-- See components/spec-api-contract.yaml -->
+
+endpoints:
+  - operation_id: [OPERATION_NAME]  # Unique identifier for this operation
+    path: /api/[RESOURCE_PATH]      # API endpoint path
+    method: [GET|POST|PUT|DELETE|PATCH]  # HTTP method
+    auth: [required|optional|none]   # Authentication requirement
+
+    request:
+      headers:
+        - name: [HEADER_NAME]
+          type: string
+          required: [true|false]
+          description: [HEADER_PURPOSE]
+          example: "[EXAMPLE_VALUE]"
+
+      params:
+        - name: [PARAM_NAME]
+          type: [string|number|boolean|array]
+          required: [true|false]
+          description: [PARAM_PURPOSE]
+          validation: [VALIDATION_RULES]
+          example: "[EXAMPLE_VALUE]"
+
+      body:
+        content_type: application/json
+        schema:
+          type: object
+          required: [FIELD_1, FIELD_2]
+          properties:
+            field1:
+              type: [string|number|boolean|array|object]
+              format: [email|uri|date|datetime|uuid]
+              minLength: [NUMBER]
+              maxLength: [NUMBER]
+              pattern: [REGEX_PATTERN]
+              description: [FIELD_PURPOSE]
+              example: "[EXAMPLE_VALUE]"
+            field2:
+              type: [TYPE]
+              description: [FIELD_PURPOSE]
+              example: "[EXAMPLE_VALUE]"
+
+    response:
+      200:
+        description: Success response
+        content_type: application/json
+        schema:
+          type: object
+          properties:
+            data:
+              type: [TYPE]
+              description: [RESPONSE_DATA_DESCRIPTION]
+            meta:
+              type: object
+              properties:
+                timestamp:
+                  type: string
+                  format: datetime
+
+      201:
+        description: Resource created successfully
+        headers:
+          Location:
+            type: string
+            description: URL of created resource
+        schema:
+          type: object
+          properties:
+            id:
+              type: string
+              description: Identifier of created resource
+
+      400:
+        description: Bad request - validation error
+        schema:
+          $ref: '#/components/schemas/ValidationError'
+
+      401:
+        description: Unauthorized - authentication required
+        schema:
+          $ref: '#/components/schemas/Error'
+
+      403:
+        description: Forbidden - insufficient permissions
+        schema:
+          $ref: '#/components/schemas/Error'
+
+      404:
+        description: Not found
+        schema:
+          $ref: '#/components/schemas/Error'
+
+      429:
+        description: Too many requests - rate limit exceeded
+        headers:
+          Retry-After:
+            type: integer
+            description: Seconds until retry allowed
+        schema:
+          $ref: '#/components/schemas/RateLimitError'
+
+      500:
+        description: Internal server error
+        schema:
+          $ref: '#/components/schemas/Error'
+
+    performance:
+      p50: < [NUMBER]ms  # 50th percentile response time
+      p95: < [NUMBER]ms  # 95th percentile response time
+      p99: < [NUMBER]ms  # 99th percentile response time
+      timeout: [NUMBER]s # Request timeout
+
+    rate_limiting:
+      requests_per_minute: [NUMBER]
+      burst: [NUMBER]
+      scope: [per_user|per_ip|global]
+
+    caching:
+      enabled: [true|false]
+      ttl: [NUMBER]  # Time to live in seconds
+      vary_by: [CACHE_KEY_FACTORS]  # e.g., "user_id, locale"
+
+    idempotency:
+      enabled: [true|false]
+      key_header: Idempotency-Key
+      ttl: [NUMBER]  # How long to remember idempotency keys (seconds)
+
+# Common Error Schemas
+components:
+  schemas:
+    Error:
+      type: object
+      required: [error, message]
+      properties:
+        error:
+          type: string
+          description: Error code
+          example: "RESOURCE_NOT_FOUND"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "The requested resource could not be found"
+        details:
+          type: object
+          description: Additional error context
+
+    ValidationError:
+      type: object
+      required: [error, message, fields]
+      properties:
+        error:
+          type: string
+          description: Error code
+          example: "VALIDATION_ERROR"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Request validation failed"
+        fields:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                description: Field name that failed validation
+              message:
+                type: string
+                description: Validation error message
+              value:
+                type: string
+                description: Invalid value provided
+
+    RateLimitError:
+      type: object
+      required: [error, message, limit, remaining, reset]
+      properties:
+        error:
+          type: string
+          example: "RATE_LIMIT_EXCEEDED"
+        message:
+          type: string
+          example: "Rate limit exceeded. Please try again later."
+        limit:
+          type: integer
+          description: Total requests allowed in window
+        remaining:
+          type: integer
+          description: Requests remaining in current window
+        reset:
+          type: integer
+          description: Unix timestamp when limit resets

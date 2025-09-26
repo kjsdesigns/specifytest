@@ -85,7 +85,33 @@ cd your-project
 git submodule add https://github.com/kjsdesigns/specifytest.git .specify
 ```
 
-### 2. Create Your First Spec
+### 2. Link Commands for Claude Code (Optional)
+
+If you're using Claude Code, create symlinks so the commands are available:
+
+```bash
+mkdir -p .claude/commands
+cd .claude/commands
+ln -s ../../.specify/commands/specify.md specify.md
+ln -s ../../.specify/commands/constitution.md constitution.md
+ln -s ../../.specify/commands/plan.md plan.md
+ln -s ../../.specify/commands/tasks.md tasks.md
+ln -s ../../.specify/commands/implement.md implement.md
+ln -s ../../.specify/commands/analyze.md analyze.md
+ln -s ../../.specify/commands/clarify.md clarify.md
+cd ../..
+```
+
+Or use a loop to link all commands:
+
+```bash
+mkdir -p .claude/commands
+for cmd in .specify/commands/*.md; do
+  ln -s "../../$cmd" ".claude/commands/$(basename "$cmd")"
+done
+```
+
+### 3. Create Your First Spec
 
 ```bash
 # Create specs directory
@@ -98,7 +124,7 @@ cp .specify/templates/spec-test-case.yaml specs/test-cases/TC-001.yaml
 # Remember to update hash_timestamp to current UTC time
 ```
 
-### 3. Run Staleness Check
+### 4. Run Staleness Check
 
 ```bash
 .specify/scripts/check-staleness.sh
@@ -111,7 +137,7 @@ Once installed as `.specify/`, the framework provides:
 - **Templates**: Access via `.specify/templates/`
 - **Scripts**: Run via `.specify/scripts/`
 - **Constitution**: Review at `.specify/memory/constitution.md`
-- **Commands**: Available in `.specify/commands/` for Claude Code users
+- **Commands**: Symlinked to `.claude/commands/` for Claude Code users (if set up during installation)
 
 ### Example: Creating a Test Case
 

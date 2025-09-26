@@ -62,8 +62,15 @@ install_specifytest() {
         exit 1
     fi
 
+    print_color "$YELLOW" "Setting up Claude Code commands..."
+    if setup_claude_commands; then
+        print_color "$GREEN" "✓ Claude Code commands linked"
+    else
+        print_color "$YELLOW" "⚠ Claude Code commands setup skipped (optional)"
+    fi
+
     print_color "$YELLOW" "Creating commit..."
-    git add .gitmodules "$SPECIFYTEST_DIR"
+    git add .gitmodules "$SPECIFYTEST_DIR" .claude 2>/dev/null || git add .gitmodules "$SPECIFYTEST_DIR"
     git commit -m "Add specifytest submodule
 
 - Added specification-driven development framework
@@ -71,6 +78,43 @@ install_specifytest() {
 - Repository: $SPECIFYTEST_REPO"
 
     print_color "$GREEN" "✓ Commit created"
+}
+
+# Function to set up Claude Code command symlinks
+setup_claude_commands() {
+    # Check if this looks like a Claude Code project or ask user
+    if [[ -d ".claude" ]] || [[ -f "CLAUDE.md" ]]; then
+        local setup_commands=true
+    else
+        read -p "Set up Claude Code commands? (y/N): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            return 1
+        fi
+        setup_commands=true
+    fi
+
+    if [[ "$setup_commands" == true ]]; then
+        mkdir -p .claude/commands
+
+        # Create symlinks for all command files
+        for cmd in "$SPECIFYTEST_DIR"/commands/*.md; do
+            if [[ -f "$cmd" ]]; then
+                local cmd_name=$(basename "$cmd")
+                local target_path=".claude/commands/$cmd_name"
+
+                # Remove existing file/link if it exists
+                rm -f "$target_path"
+
+                # Create relative symlink
+                ln -s "../../$SPECIFYTEST_DIR/commands/$cmd_name" "$target_path"
+            fi
+        done
+
+        return 0
+    fi
+
+    return 1
 }
 
 # Function to display post-installation instructions
@@ -83,7 +127,16 @@ show_instructions() {
     echo "Next steps:"
     echo "1. Review the constitution: cat .specify/memory/constitution.md"
     echo "2. Check available templates: ls .specify/templates/"
-    echo "3. Run staleness check: .specify/scripts/check-staleness.sh"
+    echo "3. Check Claude Code commands: ls .claude/commands/"
+    echo "4. Run staleness check: .specify/scripts/check-staleness.sh"
+    echo
+    echo "Claude Code commands available:"
+    echo "  /specify    - Create specifications from requirements"
+    echo "  /plan       - Create implementation plan"
+    echo "  /tasks      - Generate task list"
+    echo "  /implement  - Execute tasks"
+    echo "  /analyze    - Analyze consistency"
+    echo "  /clarify    - Ask clarification questions"
     echo
     echo "To update specifytest in the future:"
     echo "  cd .specify && git pull origin main && cd .. && git add .specify && git commit -m 'Update specifytest'"

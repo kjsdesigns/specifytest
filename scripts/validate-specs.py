@@ -59,6 +59,7 @@ class SpecValidator:
         'Technology': ['id', 'name', 'type', 'hash_timestamp'],
         'Event': ['id', 'name', 'type', 'hash_timestamp'],
         'Message': ['id', 'name', 'type', 'hash_timestamp'],
+        'UI Component': ['id', 'name', 'type', 'hash_timestamp'],
     }
 
     # Valid ID prefixes for each type
@@ -77,17 +78,71 @@ class SpecValidator:
         'Technology': 'TECH',
         'Event': 'EVENT',
         'Message': 'MESSAGE',
+        'UI Component': 'UI',
     }
 
     # Valid status values
     VALID_STATUSES = ['draft', 'ready', 'active', 'deprecated']
 
-    def __init__(self, repo_root: Path):
+    def __init__(self, repo_root: Path, check_filenames: bool = True, check_refs: bool = False):
         self.repo_root = repo_root
         self.errors: List[ValidationError] = []
+        self.check_filenames = check_filenames
+        self.check_refs = check_refs
+        self.all_spec_ids: Dict[str, Path] = {}
+        self.all_spec_files: List[Path] = []
+
+    def validate_filename(self, file_path: Path, spec_id: str, spec_type: str) -> bool:
+        """Validate that filename matches spec ID and follows conventions"""
+        if not self.check_filenames:
+            return True
+
+        filename = file_path.stem
+        expected_prefix = self.ID_PREFIXES.get(spec_type)
+
+        if not expected_prefix:
+            return True
+
+        if spec_id != filename:
+            self.errors.append(ValidationError(
+                file_path,
+                'warning',
+                f"Filename '{filename}' doesn't match spec ID '{spec_id}'. Expected '{spec_id}.{file_path.suffix[1:]}'"
+            ))
+            return False
+
+        if file_path.suffix.lower() in ['.yaml', '.yml']:
+            if spec_type not in ['TestCase', 'ScenarioCase', 'PreconditionCase']:
+                self.errors.append(ValidationError(
+                    file_path,
+                    'warning',
+                    f"YAML file extension used for non-case spec type '{spec_type}'. Expected .md"
+                ))
+        elif file_path.suffix.lower() == '.md':
+            if spec_type in ['TestCase', 'ScenarioCase', 'PreconditionCase']:
+                self.errors.append(ValidationError(
+                    file_path,
+                    'warning',
+                    f"Markdown file extension used for case type '{spec_type}'. Expected .yaml"
+                ))
+
+        return True
 
     def validate_timestamp(self, timestamp: str, file_path: Path) -> bool:
         """Validate ISO 8601 timestamp format"""
+        # Handle datetime objects parsed by YAML
+        if isinstance(timestamp, datetime):
+            timestamp_str = timestamp.strftime("%Y-%m-%dT%H:%M:%SZ")
+            return True
+
+        if not isinstance(timestamp, str):
+            self.errors.append(ValidationError(
+                file_path,
+                'error',
+                f"Invalid timestamp type: expected string, got {type(timestamp).__name__}"
+            ))
+            return False
+
         pattern = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'
         if not re.match(pattern, timestamp):
             self.errors.append(ValidationError(
@@ -225,6 +280,36 @@ class SpecValidator:
 
         return True
 
+    def check_duplicate_id(self, spec_id: str, file_path: Path) -> bool:
+        """Check for duplicate spec IDs across files"""
+        if spec_id in self.all_spec_ids:
+            existing_file = self.all_spec_ids[spec_id]
+            self.errors.append(ValidationError(
+                file_path,
+                'error',
+                f"Duplicate spec ID '{spec_id}' found. Also exists in {existing_file}"
+            ))
+            return False
+
+        self.all_spec_ids[spec_id] = file_path
+        return True
+
+    def validate_references(self, references: List, file_path: Path) -> bool:
+        """Validate that referenced spec IDs exist"""
+        if not self.check_refs or not references:
+            return True
+
+        for ref in references:
+            ref_id = ref if isinstance(ref, str) else ref.get('id') if isinstance(ref, dict) else None
+            if ref_id and ref_id not in self.all_spec_ids:
+                self.errors.append(ValidationError(
+                    file_path,
+                    'warning',
+                    f"Referenced spec ID '{ref_id}' not found in repository"
+                ))
+
+        return True
+
     def validate_case_path(self, path: str, expected_prefix: str, file_path: Path) -> bool:
         """Validate case file path format"""
         if not path.startswith('/specs/'):
@@ -296,6 +381,8 @@ class SpecValidator:
             # Validate ID format
             if 'id' in content and 'type' in content:
                 self.validate_id_format(content['id'], content['type'], file_path)
+                self.validate_filename(file_path, content['id'], content['type'])
+                self.check_duplicate_id(content['id'], file_path)
 
             # Validate timestamp
             if 'hash_timestamp' in content:
@@ -313,6 +400,10 @@ class SpecValidator:
             # Validate phase structure for ScenarioCase
             if spec_type == 'ScenarioCase' and 'phases' in content:
                 self.validate_scenario_phases(content, file_path)
+
+            # Validate references
+            if 'related' in content:
+                self.validate_references(content['related'], file_path)
 
             return True
 
@@ -373,6 +464,8 @@ class SpecValidator:
             # Validate ID format
             if 'id' in frontmatter and 'type' in frontmatter:
                 self.validate_id_format(frontmatter['id'], frontmatter['type'], file_path)
+                self.validate_filename(file_path, frontmatter['id'], frontmatter['type'])
+                self.check_duplicate_id(frontmatter['id'], file_path)
 
             # Validate timestamp
             if 'hash_timestamp' in frontmatter:
@@ -396,6 +489,10 @@ class SpecValidator:
                         'info',
                         f"Missing recommended section: '{section}'"
                     ))
+
+            # Validate references
+            if 'related' in frontmatter:
+                self.validate_references(frontmatter['related'], file_path)
 
             return True
 
@@ -436,6 +533,7 @@ class SpecValidator:
         # Find all spec files
         patterns = ['**/*.yaml', '**/*.yml', '**/*.md'] if recursive else ['*.yaml', '*.yml', '*.md']
 
+        spec_files = []
         for pattern in patterns:
             for file_path in directory.glob(pattern):
                 # Skip templates and non-spec files
@@ -448,14 +546,41 @@ class SpecValidator:
                 if 'specs/' not in str(file_path) and 'plans/' not in str(file_path):
                     continue
 
-                stats['total'] += 1
-                errors_before = len([e for e in self.errors if e.severity == 'error'])
+                spec_files.append(file_path)
 
-                self.validate_file(file_path)
+        # First pass: collect all spec IDs (for cross-reference validation)
+        if self.check_refs:
+            for file_path in spec_files:
+                try:
+                    if file_path.suffix in ['.yaml', '.yml']:
+                        with open(file_path, 'r') as f:
+                            content = yaml.safe_load(f)
+                            if content and 'id' in content:
+                                self.all_spec_ids[content['id']] = file_path
+                    elif file_path.suffix == '.md':
+                        with open(file_path, 'r') as f:
+                            content = f.read()
+                            yaml_match = re.match(r'^---\s*\n(.*?)\n---', content, re.DOTALL)
+                            if yaml_match:
+                                frontmatter = yaml.safe_load(yaml_match.group(1))
+                                if frontmatter and 'id' in frontmatter:
+                                    self.all_spec_ids[frontmatter['id']] = file_path
+                except:
+                    pass
 
-                errors_after = len([e for e in self.errors if e.severity == 'error'])
-                if errors_after == errors_before:
-                    stats['passed'] += 1
+            # Clear the IDs dict to re-populate during validation (for duplicate detection)
+            self.all_spec_ids.clear()
+
+        # Second pass: validate all files
+        for file_path in spec_files:
+            stats['total'] += 1
+            errors_before = len([e for e in self.errors if e.severity == 'error'])
+
+            self.validate_file(file_path)
+
+            errors_after = len([e for e in self.errors if e.severity == 'error'])
+            if errors_after == errors_before:
+                stats['passed'] += 1
 
         # Count errors by severity
         for error in self.errors:
@@ -528,6 +653,18 @@ Examples:
         help="Output in JSON format"
     )
 
+    parser.add_argument(
+        "--no-check-filenames",
+        action="store_true",
+        help="Skip filename validation"
+    )
+
+    parser.add_argument(
+        "--check-refs",
+        action="store_true",
+        help="Enable cross-reference validation (checks if referenced spec IDs exist)"
+    )
+
     args = parser.parse_args()
 
     path = Path(args.path)
@@ -542,7 +679,11 @@ Examples:
             break
         repo_root = repo_root.parent
 
-    validator = SpecValidator(repo_root)
+    validator = SpecValidator(
+        repo_root,
+        check_filenames=not args.no_check_filenames,
+        check_refs=args.check_refs
+    )
 
     if path.is_file():
         # Validate single file

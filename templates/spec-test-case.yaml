@@ -1,5 +1,7 @@
 id: TC-[XXX]
 name: [descriptive-kebab-case-name]
+type: TestCase
+status: draft
 hash_timestamp: [ISO_8601_TIMESTAMP]  # Updated on every save (YYYY-MM-DDTHH:MM:SSZ)
 purpose: [Why this test exists and what it validates]
 preconditions:

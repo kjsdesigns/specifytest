@@ -1,5 +1,7 @@
 id: PC-[XXX]
 name: [descriptive-kebab-case-name]
+type: PreconditionCase
+status: draft
 hash_timestamp: [ISO_8601_TIMESTAMP]  # Updated on every save (YYYY-MM-DDTHH:MM:SSZ)
 purpose: [What this precondition sets up]
 setup_steps:

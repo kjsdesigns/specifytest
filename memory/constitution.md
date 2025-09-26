@@ -34,7 +34,7 @@ across the entire system.
 
 ### III. Independent Identifier Standards
 All identifiers must conform to consistent patterns with stable IDs:
-- Specs: Type prefix + number (W-001, P-012, INT-204, DATA-015, SEC-008, EVENT-001, MESSAGE-001)
+- Specs: Type prefix + number (W-001, P-012, UI-003, INT-204, DATA-015, SEC-008, EVENT-001, MESSAGE-001)
 - Test Cases: TC prefix + number (TC-001, TC-002, TC-003)
 - Scenario Cases: SC prefix + number (SC-001, SC-002, SC-003)
 - Precondition Cases: PC prefix + number (PC-001, PC-002, PC-003)
@@ -65,8 +65,10 @@ MUST contain a `validation_cases` section listing all Test Case paths (e.g.,
 `/specs/test-cases/TC-001.yaml`) and Scenario Case paths that validate its assertions.
 This enables agents to navigate directly to Case files while timestamps detect
 changes. Test and Scenario Cases reference Precondition Cases by absolute file
-paths. Precondition Cases are standalone and do not reference other artifacts,
-ensuring they remain reusable setup/teardown components.
+paths. Non-case specs (workflows, pages, UI components, etc.) MUST NOT reference
+Precondition Cases directly - only Test Cases and Scenario Cases should reference
+Precondition Cases. Precondition Cases are standalone and do not reference other
+artifacts, ensuring they remain reusable setup/teardown components.
 
 ### VI. Mandatory Template Usage (NON-NEGOTIABLE)
 All specifications, Cases, plans, and tasks MUST use the exact templates provided
@@ -131,6 +133,7 @@ All Cases MUST be organized in dedicated directories at the repository root:
 
 ├── workflows/        # Workflow specs (W-xxx)
 ├── pages/           # Page specs (P-xxx)
+├── ui-components/   # UI Component specs (UI-xxx)
 ├── concepts/        # Concept specs (C-xxx)
 ├── integrations/    # Integration specs (INT-xxx)
 ├── data/            # Data specs (DATA-xxx)
@@ -389,4 +392,67 @@ Templates are mandatory and located at `.specify/templates/`.
 All artifacts must adopt templates exactly, including timestamp format and path
 reference formats.
 
-**Version**: 6.0.0 | **Ratified**: 2025-09-25 | **Last Amended**: 2025-09-25
+## Clarification and Communication Standards
+
+### Clarification Question Format
+When asking clarifying questions or requesting user input, use numbered questions
+with indented lettered options. Include a space between questions for readability.
+Indicate recommended options when appropriate.
+
+**Format Example:**
+```
+1. What is your preferred approach?
+   a) Option A
+   b) Option B (recommended)
+   c) Option C
+
+2. How should this be handled?
+   a) Approach one
+   b) Approach two
+```
+
+This format allows users to respond concisely (e.g., "1a, 2b") while maintaining
+clarity about available options. The number of options per question should match
+the context - use as many or as few as needed.
+
+## UI Component Specifications
+
+### X. UI Component Architecture
+UI Components are reusable interface elements that can be embedded within Pages
+or other UI Components. UI Components MUST be defined as standalone specification
+artifacts in `/specs/ui-components/` with identifier pattern `UI-XXX`. Each UI
+Component specification MUST include hash_timestamp tracking like all other specs.
+
+**Key Principles:**
+- **Standalone Specs**: UI Components have their own spec files with full documentation
+- **Nestable**: UI Components can reference other UI Components
+- **Reusable**: Same UI Component can be embedded in multiple Pages
+- **Props/Parameters**: UI Components define configurable props for customization
+- **Test Inheritance**: Pages inherit test cases indirectly through embedded UI Components
+
+### XI. Page and Component Structure Standards
+Pages and UI Components MUST describe their structure from left-to-right,
+top-to-bottom as users encounter elements. When embedding UI Components within
+Pages or other UI Components, reference by absolute path and provide context
+about what object or data the component represents.
+
+**Structure Reference Format:**
+```markdown
+### Elements
+- **User Profile Card**: `/specs/ui-components/UI-001.md` (displays current user's profile)
+- **Action Button**: Primary "Save Changes" button
+- **Notification List**: `/specs/ui-components/UI-012.md` (shows user's unread notifications)
+```
+
+### XII. Test Case Inheritance Model
+When a Page embeds a UI Component, the Page indirectly inherits all Test Cases
+and Scenario Cases referenced by that UI Component. Pages MUST NOT duplicate
+these inherited test references in their own validation_cases section. Only list
+test cases that directly validate the Page's unique functionality beyond its
+embedded components.
+
+Test Cases and Scenario Cases SHOULD include conditions describing when they
+apply. This allows inherited cases to be evaluated in the context of the embedding
+Page without requiring explicit selective inheritance mechanisms.
+
+**Version**: 6.1.0 | **Ratified**: 2025-09-25 | **Last Amended**: 2025-09-26

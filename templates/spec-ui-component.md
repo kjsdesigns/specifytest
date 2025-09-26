@@ -1,8 +1,8 @@
 <!-- See components/spec-header.md for header format -->
 ---
-id: P-[XXX]  # Note: P for Page, not PC which is for Precondition Cases
+id: UI-[XXX]
 name: [descriptive-kebab-case-name]
-type: Page
+type: UI Component
 status: draft
 related: []
 hash_timestamp: [ISO_8601_TIMESTAMP]  # Updated on every save
@@ -11,34 +11,36 @@ hash_timestamp: [ISO_8601_TIMESTAMP]  # Updated on every save
 # {name}
 
 ## Purpose
-[What this page/interface allows users to accomplish]
+[What this UI component allows users to accomplish]
 
 ## User Context
-**Primary Users**: [Who will use this page]
-**Entry Points**: [How users get to this page]
-**User Goals**: [What users want to achieve]
+**Primary Users**: [Who will use this component]
+**Usage Context**: [Where and when this component is used]
+**User Goals**: [What users want to achieve with this component]
 
 <!-- See components/spec-ui-structure.md for structure format -->
-## Page Structure
+## Component Structure
 
 ### Layout
-[Description of the overall page layout from left-to-right, top-to-bottom]
+[Description of the component's visual layout from left-to-right, top-to-bottom]
 
 ### Elements
-[Description of each element in the order they appear, left-to-right, top-to-bottom]
-
+[Description of each element within the component, left-to-right, top-to-bottom]
 - **[Element 1]**: [What it shows/does]
-  - [If this is a UI component, reference: `/specs/ui-components/UI-XXX.md` with context about what object/data it represents]
-
+  - [If this is a nested UI component, reference: `/specs/ui-components/UI-XXX.md` with context]
 - **[Element 2]**: [What it shows/does]
-  - [If nested UI component: path and context]
-
 - **[Element 3]**: [What it shows/does]
 
 ### Actions/Controls
 - **[Action 1]**: [What it does]
 - **[Action 2]**: [What it does]
-- **[Action 3]**: [What it does]
+
+## Props/Parameters
+[Configuration values that can be passed to this component when embedded]
+
+| Prop | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| [prop_name] | [string/number/boolean/object/array] | [Yes/No] | [default_value] | [What this prop controls] |
 
 ## Data Display
 - **[Data Element 1]**: [What it shows and why]
@@ -54,23 +56,21 @@ hash_timestamp: [ISO_8601_TIMESTAMP]  # Updated on every save
 - [List of less common actions]
 
 ## States
+- **Default**: [Normal state appearance/behavior]
 - **Loading**: [What users see while loading]
 - **Empty**: [What users see with no data]
 - **Error**: [Error handling display]
-- **Success**: [Success feedback]
+- **Disabled**: [Non-interactive state]
+- **Hover/Focus**: [Interactive feedback]
+- **Active/Selected**: [Selection state]
 
 ## Responsive Behavior
 - **Desktop**: [Layout/behavior]
 - **Tablet**: [Layout/behavior]
 - **Mobile**: [Layout/behavior]
 
-## Navigation
-**Previous Page**: [Where users come from]
-**Next Steps**: [Where users typically go next]
-**Breadcrumbs**: [Navigation context]
-
 ## Validation
-- [Field validation rules]
+- [Field validation rules if applicable]
 - [Error messages]
 - [Success confirmations]
 
@@ -78,9 +78,10 @@ hash_timestamp: [ISO_8601_TIMESTAMP]  # Updated on every save
 - [Keyboard navigation requirements]
 - [Screen reader considerations]
 - [WCAG compliance notes]
+- [Focus management]
 
 ## Performance
-- **Initial Load**: [Target time]
+- **Render Time**: [Target time]
 - **Interactions**: [Response time targets]
 - **Data Updates**: [Refresh strategy]
 
@@ -123,14 +124,14 @@ components:
 ### Scenario Cases
 - [ ] [SC-XXX: Scenario description](/specs/scenario-cases/SC-XXX.yaml)
 
-**Note**: Pages that embed UI components indirectly inherit test and scenario cases from those components. Only list cases here that directly test this page's unique functionality.
+**Note**: Pages that embed this UI component will indirectly inherit these test and scenario cases. Test cases should include conditions describing when they apply.
 
 <!-- See components/spec-implementation-refs.md for implementation reference format -->
 ## Implementation References
 
-- Page component: `[path/to/page/component]`
-- Page tests: `[path/to/page/tests]`
-- Page objects: `[path/to/page/objects]`
+- Component: `[path/to/component]`
+- Component tests: `[path/to/component/tests]`
+- Storybook: `[path/to/stories]`
 
 <!-- See components/spec-uncertainties.md for uncertainties format -->
 ## Uncertainties

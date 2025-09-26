@@ -153,7 +153,7 @@ Use for:
 
 ## Validation
 
-Use `/Users/keith/claude/specifytest/.specify/scripts/validate-specs.py` to check:
+Use `.specify/scripts/validate-specs.py` to check:
 - Required sections are present
 - Section ordering follows guidelines
 - Components are referenced correctly

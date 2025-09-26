@@ -70,13 +70,12 @@ ensuring they remain reusable setup/teardown components.
 
 ### VI. Mandatory Template Usage (NON-NEGOTIABLE)
 All specifications, Cases, plans, and tasks MUST use the exact templates provided
-in `/Users/keith/claude/specifytest/.specify/templates/`. Templates define required
-sections including hash_timestamp field, field structures, and validation rules.
-When generating new Test Cases, Scenario Cases, Precondition Cases, plans, or
-tasks, always load and apply the appropriate template from `.specify/templates/`.
-Templates specify timestamp format and file path references. Missing required
-fields or deviating from template structure constitutes a constitution violation
-that blocks in enforce mode.
+in `.specify/templates/`. Templates define required sections including hash_timestamp
+field, field structures, and validation rules. When generating new Test Cases,
+Scenario Cases, Precondition Cases, plans, or tasks, always load and apply the
+appropriate template from `.specify/templates/`. Templates specify timestamp format
+and file path references. Missing required fields or deviating from template
+structure constitutes a constitution violation that blocks in enforce mode.
 
 ### VII. Plans Track Git State and Tasks Reference Paths
 Plans MUST live under `/plans/` and capture the Git commit SHA at plan creation.
@@ -386,7 +385,7 @@ Amendment procedure requires:
 - Update all affected templates
 - Version increment following semantic versioning
 
-Templates are mandatory and located at `/Users/keith/claude/specifytest/.specify/templates/`.
+Templates are mandatory and located at `.specify/templates/`.
 All artifacts must adopt templates exactly, including timestamp format and path
 reference formats.
 

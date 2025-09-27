@@ -94,14 +94,70 @@ References to end-to-end scenarios involving this spec:
 - /specs/scenario-cases/SC-002.yaml: Account recovery process
 ```
 
-### 8. Timestamp Validation
-Before completing, validate all timestamps:
-- Check all Case files have valid ISO 8601 timestamps
-- Format: YYYY-MM-DDTHH:MM:SSZ (e.g., 2024-01-15T10:30:00Z)
-- Report any invalid timestamps found
-- Fail if any timestamp is malformed
+### 8. Specification Validation
+All specifications must pass validation via `scripts/validate-specs.py`. The validator enforces:
 
-### 9. Output Summary
+**File Structure:**
+- Case types (TC, SC, PC) MUST use `.yaml` extension only
+- Other spec types (W, P, UI, etc.) MUST use `.md` extension only
+- The `.yml` extension is prohibited and will cause validation failure
+- Filenames MUST match their spec ID (TC-001.yaml for id: TC-001)
+
+**Required Fields (from template _meta):**
+- All specs: `id`, `name`, `type`, `status`, `hash_timestamp`
+- Test Cases: additionally require `purpose`, `preconditions`, `steps`, `validations`
+- Scenario Cases: additionally require `purpose`, `phases`
+- Precondition Cases: additionally require `purpose`, `setup_steps`
+
+**ID Format:**
+- Must match pattern `[PREFIX]-[NUMBER]` where PREFIX matches spec type
+- Test Cases: `TC-###` (e.g., TC-001, TC-099)
+- Scenario Cases: `SC-###` (e.g., SC-001)
+- Precondition Cases: `PC-###` (e.g., PC-001)
+- Workflows: `W-###`, Pages: `P-###`, UI Components: `UI-###`, etc.
+- Each spec type has exactly one prefix (single prefix rule)
+
+**Timestamp Format:**
+- Must be valid ISO 8601 UTC format: `YYYY-MM-DDTHH:MM:SSZ`
+- Example: `2024-01-15T10:30:00Z`
+- MUST be updated whenever spec content changes
+
+**Status Values:**
+- Must be one of: `draft`, `ready`, `active`, `deprecated`
+- Invalid status values cause validation warnings
+
+**Case Path References:**
+- Precondition paths MUST start with `/specs/precondition-cases/`
+- Test case paths MUST start with `/specs/test-cases/`
+- All case paths MUST end with `.yaml` extension
+- Case paths MUST use absolute paths from repository root
+
+**Scenario Phase Validation:**
+- Phases array MUST contain at least one phase
+- Each phase MUST have: `phase_id`, `phase_name`, `description`, `preconditions`, `test_cases`
+- Phase IDs MUST be unique within a scenario
+- Preconditions and test_cases arrays MUST have `path` field when present
+
+**Duplicate Detection:**
+- No two specs can have the same ID across the repository
+- Validator checks all spec files and reports duplicates
+
+**Cross-References (with --check-refs flag):**
+- Referenced spec IDs must exist in the repository
+- Validates `related` fields and case references
+
+Run validation: `python scripts/validate-specs.py /specs/`
+Use verbose mode: `python scripts/validate-specs.py /specs/ --verbose`
+
+### 9. Validation Enforcement
+Before finalizing any spec changes:
+- Run validator: `python scripts/validate-specs.py /specs/`
+- Fix all validation errors before proceeding
+- Ensure all timestamps are current and valid
+- Verify all file extensions are correct (.yaml for cases, .md for specs)
+- Confirm all required fields are present
+
+### 10. Output Summary
 Report all changes:
 - List of specs created/updated with their IDs and paths
 - List of Test Cases created with IDs
@@ -109,6 +165,7 @@ Report all changes:
 - List of Precondition Cases created with IDs
 - Cross-references established
 - Any specs or Cases marked for deletion
+- Validation results (pass/fail with error count)
 
 ## Example Requirement Distribution
 

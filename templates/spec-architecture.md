@@ -21,7 +21,7 @@ hash_timestamp: [ISO_8601_TIMESTAMP]  # Updated on every save
 # {name}
 
 ## Overview
-[High-level description of this architectural component or pattern and its role in the system]
+[High-level description of this architectural component or pattern]
 
 ## Purpose
 [Why this architecture exists and what problems it solves]

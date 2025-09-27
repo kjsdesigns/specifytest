@@ -8,9 +8,10 @@ import os
 import re
 import sys
 import yaml
+import argparse
 from pathlib import Path
-from datetime import datetime
-from typing import Dict, List, Optional
+from datetime import datetime, timezone
+from typing import Dict, List, Optional, Tuple
 
 class TypeRegistryGenerator:
     """Generates type registry from template files"""
@@ -151,13 +152,20 @@ class TypeRegistryGenerator:
 
                     self.types[type_name] = metadata
 
-    def generate_registry(self) -> str:
-        """Generate the type registry YAML content"""
+    def generate_registry(self, existing_timestamp: Optional[str] = None) -> str:
+        """Generate the type registry YAML content
+
+        Args:
+            existing_timestamp: Preserve existing timestamp if content hasn't changed
+        """
+        # Use existing timestamp or generate new one
+        timestamp = existing_timestamp or datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+
         # Header
         header = f"""# AUTO-GENERATED FILE - DO NOT EDIT
 # Generated from templates in .specify/templates/
 # Run: python .specify/scripts/generate-type-registry.py
-# Last generated: {datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')}
+# Last generated: {timestamp}
 
 """
 
@@ -180,20 +188,84 @@ class TypeRegistryGenerator:
 
         return header + registry_yaml
 
-    def write_registry(self, output_path: Path):
-        """Write the registry to file"""
-        registry_content = self.generate_registry()
+    def extract_content_without_timestamp(self, content: str) -> str:
+        """Extract registry content excluding the timestamp line"""
+        lines = content.split('\n')
+        filtered_lines = [line for line in lines if not line.startswith('# Last generated:')]
+        return '\n'.join(filtered_lines)
+
+    def extract_timestamp(self, content: str) -> Optional[str]:
+        """Extract timestamp from registry content"""
+        for line in content.split('\n'):
+            if line.startswith('# Last generated:'):
+                return line.replace('# Last generated:', '').strip()
+        return None
+
+    def write_registry(self, output_path: Path, force: bool = False) -> bool:
+        """Write the registry to file only if content changed
+
+        Args:
+            output_path: Path to write registry file
+            force: Force write even if content hasn't changed
+
+        Returns:
+            True if file was written, False if unchanged
+        """
+        # Read existing registry if it exists
+        existing_content = None
+        existing_timestamp = None
+
+        if output_path.exists() and not force:
+            with open(output_path, 'r') as f:
+                existing_content = f.read()
+            existing_timestamp = self.extract_timestamp(existing_content)
+
+        # Generate new registry (with existing timestamp if content unchanged)
+        new_content = self.generate_registry(existing_timestamp)
+
+        # Compare content without timestamps
+        if existing_content and not force:
+            existing_core = self.extract_content_without_timestamp(existing_content)
+            new_core = self.extract_content_without_timestamp(new_content)
+
+            if existing_core == new_core:
+                print(f"Type registry is up to date: {output_path}")
+                print(f"  Found {len(self.types)} spec types (no changes)")
+                return False
+
+        # Content changed or force write - update timestamp
+        new_content = self.generate_registry()  # Generate with new timestamp
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         with open(output_path, 'w') as f:
-            f.write(registry_content)
+            f.write(new_content)
 
         print(f"Generated type registry: {output_path}")
         print(f"  Found {len(self.types)} spec types")
+        return True
 
 def main():
     """Main entry point"""
+    parser = argparse.ArgumentParser(
+        description="Generate type registry from template metadata",
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Check if registry would change (exit 1 if changes needed)"
+    )
+
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Force regeneration even if content unchanged"
+    )
+
+    args = parser.parse_args()
+
     # Find repository root
     script_path = Path(__file__).resolve()
     repo_root = script_path.parent.parent.parent  # Go up from .specify/scripts/
@@ -206,8 +278,30 @@ def main():
 
     # Generate and write registry
     output_path = repo_root / '.specify' / 'schemas' / 'type-registry.yaml'
-    generator.write_registry(output_path)
 
+    if args.check:
+        # Check mode: don't write, just check if changes would be made
+        existing_content = None
+        if output_path.exists():
+            with open(output_path, 'r') as f:
+                existing_content = f.read()
+            existing_timestamp = generator.extract_timestamp(existing_content)
+            new_content = generator.generate_registry(existing_timestamp)
+            existing_core = generator.extract_content_without_timestamp(existing_content)
+            new_core = generator.extract_content_without_timestamp(new_content)
+
+            if existing_core != new_core:
+                print("Type registry needs update")
+                return 1
+            else:
+                print("Type registry is up to date")
+                return 0
+        else:
+            print("Type registry does not exist")
+            return 1
+
+    # Normal mode: write registry
+    changed = generator.write_registry(output_path, force=args.force)
     return 0
 
 if __name__ == "__main__":

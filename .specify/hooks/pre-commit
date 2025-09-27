@@ -30,15 +30,30 @@ if [ -n "$TEMPLATE_FILES" ]; then
 
     # Check if type registry needs to be regenerated
     if git diff --cached --name-only --diff-filter=ACM | grep -qE '^(templates/|\.specify/templates/)spec-.*\.(yaml|md)$'; then
-        echo -e "${YELLOW}Spec templates modified, regenerating type registry...${NC}"
+        echo -e "${YELLOW}Spec templates modified, checking type registry...${NC}"
 
-        python3 "$REPO_ROOT/.specify/scripts/generate-type-registry.py"
+        # First check if registry needs updating (without modifying it)
+        if python3 "$REPO_ROOT/.specify/scripts/generate-type-registry.py" --check > /dev/null 2>&1; then
+            echo -e "${GREEN}✓ Type registry is up to date${NC}"
+        else
+            # Registry needs updating - regenerate it
+            echo -e "${YELLOW}Type registry needs update, regenerating...${NC}"
+            python3 "$REPO_ROOT/.specify/scripts/generate-type-registry.py"
 
-        # Check if registry was updated
-        if git diff --name-only | grep -q "type-registry.yaml"; then
-            echo -e "${YELLOW}Type registry was updated. Please review and stage the changes:${NC}"
-            echo -e "  ${GREEN}git add .specify/schemas/type-registry.yaml${NC}"
-            exit 1
+            # Check if registry is already staged
+            if git diff --cached --name-only | grep -q "type-registry.yaml"; then
+                echo -e "${YELLOW}Type registry was already staged but needs update${NC}"
+                echo -e "${YELLOW}Please review the changes and re-stage:${NC}"
+                echo -e "  ${GREEN}git add .specify/schemas/type-registry.yaml${NC}"
+                exit 1
+            fi
+
+            # Check if registry was updated (unstaged changes)
+            if git diff --name-only | grep -q "type-registry.yaml"; then
+                echo -e "${YELLOW}Type registry was updated. Please review and stage the changes:${NC}"
+                echo -e "  ${GREEN}git add .specify/schemas/type-registry.yaml${NC}"
+                exit 1
+            fi
         fi
     fi
 fi

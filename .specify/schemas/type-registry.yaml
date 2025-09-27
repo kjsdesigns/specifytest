@@ -1,7 +1,7 @@
 # AUTO-GENERATED FILE - DO NOT EDIT
 # Generated from templates in .specify/templates/
 # Run: python .specify/scripts/generate-type-registry.py
-# Last generated: 2025-09-27T16:13:50Z
+# Last generated: 2025-09-27T16:26:53Z
 
 types:
   Architecture:
@@ -13,6 +13,7 @@ types:
     - event_driven
     - three_tier
     - hexagonal
+    - layered
     template: templates/spec-architecture.md
   Concept:
     prefix: CON

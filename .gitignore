@@ -36,3 +36,6 @@ venv/
 # Node
 node_modules/
 npm-debug.log*
+
+# Test specs (local testing only)
+test-specs/

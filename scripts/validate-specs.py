@@ -43,54 +43,175 @@ class ValidationError:
 class SpecValidator:
     """Validates specification files"""
 
-    # Required fields for different spec types
-    REQUIRED_FIELDS = {
-        'TestCase': ['id', 'name', 'type', 'hash_timestamp', 'purpose', 'steps'],
-        'ScenarioCase': ['id', 'name', 'type', 'hash_timestamp', 'purpose', 'test_cases'],
-        'PreconditionCase': ['id', 'name', 'type', 'hash_timestamp', 'purpose', 'setup_steps'],
-        'Workflow': ['id', 'name', 'type', 'hash_timestamp'],
-        'Page': ['id', 'name', 'type', 'hash_timestamp'],
-        'Concept': ['id', 'name', 'type', 'hash_timestamp'],
-        'DataSchema': ['id', 'name', 'type', 'hash_timestamp'],
-        'Contract': ['id', 'name', 'type', 'hash_timestamp'],
-        'Integration': ['id', 'name', 'type', 'hash_timestamp'],
-        'Security': ['id', 'name', 'type', 'hash_timestamp'],
-        'Configuration': ['id', 'name', 'type', 'hash_timestamp'],
-        'Technology': ['id', 'name', 'type', 'hash_timestamp'],
-        'Event': ['id', 'name', 'type', 'hash_timestamp'],
-        'Message': ['id', 'name', 'type', 'hash_timestamp'],
-        'UI Component': ['id', 'name', 'type', 'hash_timestamp'],
-    }
-
-    # Valid ID prefixes for each type
-    ID_PREFIXES = {
-        'TestCase': 'TC',
-        'ScenarioCase': 'SC',
-        'PreconditionCase': 'PC',
-        'Workflow': 'W',
-        'Page': 'P',
-        'Concept': 'C',
-        'DataSchema': 'DATA',
-        'Contract': 'CONTRACT',
-        'Integration': 'INT',
-        'Security': 'SEC',
-        'Configuration': 'CONFIG',
-        'Technology': 'TECH',
-        'Event': 'EVENT',
-        'Message': 'MESSAGE',
-        'UI Component': 'UI',
-    }
-
     # Valid status values
     VALID_STATUSES = ['draft', 'ready', 'active', 'deprecated']
 
-    def __init__(self, repo_root: Path, check_filenames: bool = True, check_refs: bool = False):
+    def __init__(self, repo_root: Path, check_filenames: bool = True, check_refs: bool = False, verbose: bool = False):
         self.repo_root = repo_root
         self.errors: List[ValidationError] = []
         self.check_filenames = check_filenames
         self.check_refs = check_refs
+        self.verbose = verbose
         self.all_spec_ids: Dict[str, Path] = {}
         self.all_spec_files: List[Path] = []
+
+        # Find template directory with failsafe
+        self.template_dir = self._find_templates_directory()
+
+        # Load spec type definitions from templates
+        self.spec_type_info = self._load_template_definitions()
+
+    def _find_templates_directory(self) -> Optional[Path]:
+        """Find templates directory with failsafe fallback logic"""
+        locations = [
+            self.repo_root / 'templates',
+            self.repo_root / '.specify' / 'templates',
+            self.repo_root / 'test-specs' / 'templates'
+        ]
+
+        for template_dir in locations:
+            if template_dir.exists() and template_dir.is_dir():
+                if self.verbose:
+                    print(f"{Colors.BLUE}Using templates from:{Colors.NC} {template_dir}")
+                return template_dir
+
+        if self.verbose:
+            print(f"{Colors.YELLOW}Warning: No templates directory found, using built-in defaults{Colors.NC}")
+        return None
+
+    def _load_template_definitions(self) -> Dict[str, Dict[str, any]]:
+        """Load spec type definitions from templates via introspection"""
+        spec_types = {}
+
+        if not self.template_dir:
+            if self.verbose:
+                print(f"{Colors.YELLOW}No templates found, using minimal built-in validation{Colors.NC}")
+            return {}
+
+        # Find all spec template files (only .yaml and .md now)
+        for pattern in ['spec-*.md', 'spec-*.yaml']:
+            for template_file in self.template_dir.glob(pattern):
+                try:
+                    type_info = self._extract_template_info(template_file)
+                    if type_info:
+                        spec_type = type_info['type']
+                        spec_types[spec_type] = type_info
+                except Exception as e:
+                    # Silently skip templates that can't be parsed
+                    pass
+
+        return spec_types
+
+    def _extract_template_info(self, template_file: Path) -> Optional[Dict[str, any]]:
+        """Extract type name, ID prefix, and required fields from a template"""
+        try:
+            if template_file.suffix == '.yaml':
+                with open(template_file, 'r') as f:
+                    content = yaml.safe_load(f)
+
+                if not content or not isinstance(content, dict):
+                    return None
+
+                # Check for _meta section first (new format)
+                if '_meta' in content:
+                    meta = content['_meta']
+                    spec_type = content.get('type')
+                    if not spec_type:
+                        return None
+
+                    return {
+                        'type': spec_type,
+                        'prefix': meta.get('id_prefix'),
+                        'file_extension': meta.get('file_extension', 'yaml'),
+                        'required_fields': meta.get('required_fields', ['id', 'name', 'type', 'hash_timestamp']),
+                        'field_validators': meta.get('field_validators', {})
+                    }
+
+                # Fallback to old introspection method
+                spec_type = content.get('type')
+                spec_id = content.get('id', '')
+
+                if not spec_type or not spec_id:
+                    return None
+
+                # Extract prefix from ID pattern (e.g., "TC-[XXX]" -> "TC")
+                prefix_match = re.match(r'^([A-Z]+)-\[', spec_id)
+                prefix = prefix_match.group(1) if prefix_match else None
+
+                if not prefix:
+                    return None
+
+                # Get required fields (fallback)
+                required_fields = ['id', 'name', 'type', 'hash_timestamp']
+
+                return {
+                    'type': spec_type,
+                    'prefix': prefix,
+                    'required_fields': required_fields
+                }
+
+            elif template_file.suffix == '.md':
+                with open(template_file, 'r') as f:
+                    content = f.read()
+
+                # Check for _meta in HTML comment first (new format)
+                meta_match = re.search(r'<!--\s*.*?_meta:\s*\n(.*?)\n-->', content, re.DOTALL)
+                if meta_match:
+                    try:
+                        # Extract the YAML-like content from the comment
+                        meta_yaml = meta_match.group(1)
+                        # Parse as YAML
+                        meta = yaml.safe_load(meta_yaml)
+
+                        # Extract frontmatter for type
+                        yaml_match = re.search(r'---\s*\n(.*?)\n---', content, re.DOTALL)
+                        if yaml_match:
+                            frontmatter = yaml.safe_load(yaml_match.group(1))
+                            spec_type = frontmatter.get('type')
+
+                            if spec_type and meta:
+                                return {
+                                    'type': spec_type,
+                                    'prefix': meta.get('id_prefix'),
+                                    'file_extension': meta.get('file_extension', 'md'),
+                                    'required_fields': meta.get('required_fields', ['id', 'name', 'type', 'hash_timestamp']),
+                                    'field_validators': meta.get('field_validators', {})
+                                }
+                    except:
+                        pass  # Fall back to old method
+
+                # Fallback: Extract YAML frontmatter (old method)
+                yaml_match = re.search(r'---\s*\n(.*?)\n---', content, re.DOTALL)
+                if not yaml_match:
+                    return None
+
+                frontmatter = yaml.safe_load(yaml_match.group(1))
+                if not frontmatter or not isinstance(frontmatter, dict):
+                    return None
+
+                spec_type = frontmatter.get('type')
+                spec_id = frontmatter.get('id', '')
+
+                if not spec_type or not spec_id:
+                    return None
+
+                # Extract prefix from ID pattern
+                prefix_match = re.match(r'^([A-Z]+)-\[', spec_id)
+                prefix = prefix_match.group(1) if prefix_match else None
+
+                if not prefix:
+                    return None
+
+                return {
+                    'type': spec_type,
+                    'prefix': prefix,
+                    'required_fields': ['id', 'name', 'type', 'hash_timestamp']
+                }
+
+        except Exception as e:
+            return None
+
+        return None
 
     def validate_filename(self, file_path: Path, spec_id: str, spec_type: str) -> bool:
         """Validate that filename matches spec ID and follows conventions"""
@@ -98,31 +219,37 @@ class SpecValidator:
             return True
 
         filename = file_path.stem
-        expected_prefix = self.ID_PREFIXES.get(spec_type)
+        type_info = self.spec_type_info.get(spec_type)
 
-        if not expected_prefix:
+        if not type_info:
             return True
 
         if spec_id != filename:
             self.errors.append(ValidationError(
                 file_path,
                 'warning',
-                f"Filename '{filename}' doesn't match spec ID '{spec_id}'. Expected '{spec_id}.{file_path.suffix[1:]}'"
+                f"Filename '{filename}' doesn't match spec ID '{spec_id}'. Expected '{spec_id}.yaml' or '{spec_id}.md'"
             ))
             return False
 
-        if file_path.suffix.lower() in ['.yaml', '.yml']:
+        if file_path.suffix.lower() == '.yaml':
             if spec_type not in ['TestCase', 'ScenarioCase', 'PreconditionCase']:
                 self.errors.append(ValidationError(
                     file_path,
-                    'warning',
+                    'error',
                     f"YAML file extension used for non-case spec type '{spec_type}'. Expected .md"
                 ))
+        elif file_path.suffix.lower() == '.yml':
+            self.errors.append(ValidationError(
+                file_path,
+                'error',
+                f"Invalid file extension '.yml'. Must use '.yaml' extension"
+            ))
         elif file_path.suffix.lower() == '.md':
             if spec_type in ['TestCase', 'ScenarioCase', 'PreconditionCase']:
                 self.errors.append(ValidationError(
                     file_path,
-                    'warning',
+                    'error',
                     f"Markdown file extension used for case type '{spec_type}'. Expected .yaml"
                 ))
 
@@ -166,22 +293,25 @@ class SpecValidator:
         return True
 
     def validate_id_format(self, spec_id: str, spec_type: str, file_path: Path) -> bool:
-        """Validate spec ID format"""
-        expected_prefix = self.ID_PREFIXES.get(spec_type)
-        if not expected_prefix:
+        """Validate spec ID format using template-defined prefix"""
+        type_info = self.spec_type_info.get(spec_type)
+
+        if not type_info:
             self.errors.append(ValidationError(
                 file_path,
                 'warning',
-                f"Unknown spec type: '{spec_type}'"
+                f"Unknown spec type: '{spec_type}' (no template found)"
             ))
             return False
 
+        expected_prefix = type_info['prefix']
         pattern = f"^{expected_prefix}-[0-9]+$"
+
         if not re.match(pattern, spec_id):
             self.errors.append(ValidationError(
                 file_path,
                 'error',
-                f"Invalid ID format: '{spec_id}'. Must match pattern '{expected_prefix}-XXX'"
+                f"Invalid ID format: '{spec_id}'. Must match pattern '{expected_prefix}-XXX' for type '{spec_type}'"
             ))
             return False
 
@@ -335,11 +465,11 @@ class SpecValidator:
             ))
 
         # Check file extension
-        if not path.endswith('.yaml') and not path.endswith('.yml'):
+        if not path.endswith('.yaml'):
             self.errors.append(ValidationError(
                 file_path,
-                'warning',
-                f"Case path should end with .yaml or .yml: '{path}'"
+                'error',
+                f"Case path must end with .yaml: '{path}'"
             ))
 
         return True
@@ -368,15 +498,17 @@ class SpecValidator:
                 ))
                 return False
 
-            # Check required fields
-            required = self.REQUIRED_FIELDS.get(spec_type, [])
-            for field in required:
-                if field not in content:
-                    self.errors.append(ValidationError(
-                        file_path,
-                        'error',
-                        f"Missing required field: '{field}'"
-                    ))
+            # Check required fields from template
+            type_info = self.spec_type_info.get(spec_type)
+            if type_info:
+                required = type_info['required_fields']
+                for field in required:
+                    if field not in content:
+                        self.errors.append(ValidationError(
+                            file_path,
+                            'error',
+                            f"Missing required field: '{field}'"
+                        ))
 
             # Validate ID format
             if 'id' in content and 'type' in content:
@@ -451,15 +583,17 @@ class SpecValidator:
                 ))
                 return False
 
-            # Check required fields
-            required = self.REQUIRED_FIELDS.get(spec_type, [])
-            for field in required:
-                if field not in frontmatter:
-                    self.errors.append(ValidationError(
-                        file_path,
-                        'error',
-                        f"Missing required field: '{field}'"
-                    ))
+            # Check required fields from template
+            type_info = self.spec_type_info.get(spec_type)
+            if type_info:
+                required = type_info['required_fields']
+                for field in required:
+                    if field not in frontmatter:
+                        self.errors.append(ValidationError(
+                            file_path,
+                            'error',
+                            f"Missing required field: '{field}'"
+                        ))
 
             # Validate ID format
             if 'id' in frontmatter and 'type' in frontmatter:
@@ -513,8 +647,15 @@ class SpecValidator:
 
     def validate_file(self, file_path: Path) -> bool:
         """Validate a single spec file"""
-        if file_path.suffix in ['.yaml', '.yml']:
+        if file_path.suffix == '.yaml':
             return self.validate_yaml_case(file_path)
+        elif file_path.suffix == '.yml':
+            self.errors.append(ValidationError(
+                file_path,
+                'error',
+                "Invalid file extension '.yml'. Must use '.yaml' extension"
+            ))
+            return False
         elif file_path.suffix == '.md':
             return self.validate_markdown_spec(file_path)
         else:
@@ -531,13 +672,13 @@ class SpecValidator:
         }
 
         # Find all spec files
-        patterns = ['**/*.yaml', '**/*.yml', '**/*.md'] if recursive else ['*.yaml', '*.yml', '*.md']
+        patterns = ['**/*.yaml', '**/*.md'] if recursive else ['*.yaml', '*.md']
 
         spec_files = []
         for pattern in patterns:
             for file_path in directory.glob(pattern):
                 # Skip templates and non-spec files
-                if '.specify/templates' in str(file_path):
+                if 'templates' in str(file_path):
                     continue
                 if 'README' in file_path.name:
                     continue
@@ -552,7 +693,7 @@ class SpecValidator:
         if self.check_refs:
             for file_path in spec_files:
                 try:
-                    if file_path.suffix in ['.yaml', '.yml']:
+                    if file_path.suffix == '.yaml':
                         with open(file_path, 'r') as f:
                             content = yaml.safe_load(f)
                             if content and 'id' in content:
@@ -665,6 +806,12 @@ Examples:
         help="Enable cross-reference validation (checks if referenced spec IDs exist)"
     )
 
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Enable verbose output with detailed validation information"
+    )
+
     args = parser.parse_args()
 
     path = Path(args.path)
@@ -672,17 +819,18 @@ Examples:
         print(f"Error: Path not found: {path}", file=sys.stderr)
         sys.exit(2)
 
-    # Find repo root
-    repo_root = path
+    # Find repo root (look for .specify or templates directory)
+    repo_root = path if path.is_dir() else path.parent
     while repo_root.parent != repo_root:
-        if (repo_root / '.specify').exists():
+        if (repo_root / '.specify').exists() or (repo_root / 'templates').exists():
             break
         repo_root = repo_root.parent
 
     validator = SpecValidator(
         repo_root,
         check_filenames=not args.no_check_filenames,
-        check_refs=args.check_refs
+        check_refs=args.check_refs,
+        verbose=args.verbose
     )
 
     if path.is_file():

@@ -1,3 +1,26 @@
+# Validation Metadata (used by validator, ignored when creating specs)
+_meta:
+  file_extension: yaml
+  id_prefix: TC
+  required_fields:
+    - id
+    - name
+    - type
+    - status
+    - hash_timestamp
+    - purpose
+    - preconditions
+    - steps
+    - validations
+  field_validators:
+    type:
+      enum: [TestCase]
+    status:
+      enum: [draft, ready, active, deprecated]
+    hash_timestamp: iso8601
+    preconditions: array_of_paths
+
+# Template starts here
 id: TC-[XXX]
 name: [descriptive-kebab-case-name]
 type: TestCase

@@ -2,7 +2,7 @@
 ---
 id: DATA-[XXX]
 name: [descriptive-kebab-case-name]
-type: DataSchema
+type: Data
 status: draft
 related: []
 hash_timestamp: [ISO_8601_TIMESTAMP]  # Updated on every save

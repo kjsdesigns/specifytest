@@ -1,3 +1,16 @@
+<!--
+Validation Metadata (used by validator, ignored when creating specs)
+_meta:
+  file_extension: md
+  id_prefix: W
+  required_fields: [id, name, type, status, hash_timestamp]
+  field_validators:
+    type:
+      enum: [Workflow]
+    status:
+      enum: [draft, ready, active, deprecated]
+    hash_timestamp: iso8601
+-->
 <!-- See components/spec-header.md for header format -->
 ---
 id: W-[XXX]

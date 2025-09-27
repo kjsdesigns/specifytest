@@ -1,6 +1,27 @@
 # Scenario Case Specification Template
 # Defines end-to-end test scenarios with phase-based organization
 
+# Validation Metadata (used by validator, ignored when creating specs)
+_meta:
+  file_extension: yaml
+  id_prefix: SC
+  required_fields:
+    - id
+    - name
+    - type
+    - status
+    - hash_timestamp
+    - purpose
+    - phases
+  field_validators:
+    type:
+      enum: [ScenarioCase]
+    status:
+      enum: [draft, ready, active, deprecated]
+    hash_timestamp: iso8601
+    phases: array_of_objects
+
+# Template starts here
 id: SC-[XXX]
 name: [descriptive-kebab-case-name]
 type: ScenarioCase

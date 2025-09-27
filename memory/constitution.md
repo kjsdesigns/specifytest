@@ -33,17 +33,25 @@ through timestamp comparison, independent versioning, and clean traceability
 across the entire system.
 
 ### III. Independent Identifier Standards
-All identifiers must conform to consistent patterns with stable IDs:
+All identifiers must conform to consistent patterns with stable IDs and single prefixes:
 - Specs: Type prefix + number (W-001, P-012, UI-003, INT-204, DATA-015, SEC-008, EVENT-001, MESSAGE-001)
 - Test Cases: TC prefix + number (TC-001, TC-002, TC-003)
 - Scenario Cases: SC prefix + number (SC-001, SC-002, SC-003)
 - Precondition Cases: PC prefix + number (PC-001, PC-002, PC-003)
+
+**Single Prefix Rule:** Each spec type has exactly one prefix. No spec type may have multiple prefixes.
+
+**File Extension Standards:**
+- Test Cases, Scenario Cases, and Precondition Cases MUST use `.yaml` extension only
+- All other spec types (Workflows, Pages, UI Components, etc.) MUST use `.md` extension only
+- The `.yml` extension is not permitted and will fail validation
+
 IDs remain stable across updates while the hash_timestamp field tracks when
 changes occurred. Human-readable names use kebab-case alongside IDs. File paths
-follow pattern: `/[case-type]/[ID].yaml` for direct navigation. All references
-to Cases MUST use full file paths (e.g., `/specs/test-cases/TC-001.yaml`). Invalid IDs,
-missing timestamps, or non-path references must block in enforce mode with
-actionable error messages.
+follow pattern: `/[case-type]/[ID].yaml` for Cases and `/[spec-type]/[ID].md` for other specs.
+All references to Cases MUST use full file paths (e.g., `/specs/test-cases/TC-001.yaml`).
+Invalid IDs, missing timestamps, wrong file extensions, or non-path references must block
+in enforce mode with actionable error messages.
 
 ### IV. Complete Case Documentation
 Every Test Case MUST include: id, name, hash_timestamp (ISO 8601 datetime),
@@ -455,4 +463,4 @@ Test Cases and Scenario Cases SHOULD include conditions describing when they
 apply. This allows inherited cases to be evaluated in the context of the embedding
 Page without requiring explicit selective inheritance mechanisms.
 
-**Version**: 6.1.0 | **Ratified**: 2025-09-25 | **Last Amended**: 2025-09-26
+**Version**: 6.2.0 | **Ratified**: 2025-09-25 | **Last Amended**: 2025-09-26

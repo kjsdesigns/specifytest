@@ -1,3 +1,16 @@
+<!--
+Validation Metadata (used by validator, ignored when creating specs)
+_meta:
+  file_extension: md
+  id_prefix: UI
+  required_fields: [id, name, type, status, hash_timestamp]
+  field_validators:
+    type:
+      enum: [UI Component]
+    status:
+      enum: [draft, ready, active, deprecated]
+    hash_timestamp: iso8601
+-->
 <!-- See components/spec-header.md for header format -->
 ---
 id: UI-[XXX]

@@ -1,3 +1,23 @@
+# Validation Metadata (used by validator, ignored when creating specs)
+_meta:
+  file_extension: yaml
+  id_prefix: PC
+  required_fields:
+    - id
+    - name
+    - type
+    - status
+    - hash_timestamp
+    - purpose
+    - setup_steps
+  field_validators:
+    type:
+      enum: [PreconditionCase]
+    status:
+      enum: [draft, ready, active, deprecated]
+    hash_timestamp: iso8601
+
+# Template starts here
 id: PC-[XXX]
 name: [descriptive-kebab-case-name]
 type: PreconditionCase

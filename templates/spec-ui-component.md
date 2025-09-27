@@ -1,15 +1,12 @@
 <!--
-Validation Metadata (used by validator, ignored when creating specs)
-_meta:
-  file_extension: md
-  id_prefix: UI
-  required_fields: [id, name, type, status, hash_timestamp]
-  field_validators:
-    type:
-      enum: [UI Component]
-    status:
-      enum: [draft, ready, active, deprecated]
-    hash_timestamp: iso8601
+Template Metadata (used by type registry generator)
+type: UI Component
+id_prefix: UI
+name_guidelines: "Reusable UI element"
+name_examples: ["button", "input_field", "dropdown", "modal"]
+file_extension: md
+
+Validation rules: see .specify/schemas/template-schema.json
 -->
 <!-- See components/spec-header.md for header format -->
 ---

@@ -400,19 +400,40 @@ Templates are mandatory and located at `.specify/templates/`.
 All artifacts must adopt templates exactly, including timestamp format and path
 reference formats.
 
-## Clarification and Communication Standards
+## Clarifying Questions
 
-### Clarification Question Format
-When asking clarifying questions or requesting user input, use numbered questions
-with indented lettered options. Include a space between questions for readability.
-Indicate recommended options when appropriate.
+### MANDATORY Format Requirements
+ALL clarifying questions MUST follow this EXACT format. Every rule listed below is mandatory and must be followed precisely:
 
-**Format Example:**
+**Required Format Rules:**
+1. Question number followed by period and single space
+2. Question text ending with question mark
+3. EXACTLY 3 spaces of indentation before each letter option
+4. Letter (lowercase) followed by closing parenthesis, single space, then option text
+5. `(recommended)` indicator added after option text where applicable
+6. EXACTLY one blank line between questions (two consecutive newlines)
+7. No additional formatting, bullets, or deviations
+
+**Correct Format Template:**
+```
+1. [Question text]?
+   a) [Option 1]
+   b) [Option 2] (recommended)
+   c) [Option 3]
+
+
+2. [Next question]?
+   a) [Option 1]
+   b) [Option 2]
+```
+
+**Complete Example:**
 ```
 1. What is your preferred approach?
    a) Option A
    b) Option B (recommended)
    c) Option C
+
 
 2. How should this be handled?
    a) Approach one
@@ -422,6 +443,53 @@ Indicate recommended options when appropriate.
 This format allows users to respond concisely (e.g., "1a, 2b") while maintaining
 clarity about available options. The number of options per question should match
 the context - use as many or as few as needed.
+
+**CRITICAL:** Deviation from this format is not permitted. Always verify formatting includes exact indentation (3 spaces) and double line breaks between questions.
+
+## Specification Filename Standards
+
+### XII. Mandatory Filename Pattern
+
+**Validation Rules:** All validation rules are defined in `.specify/schemas/template-schema.json`
+
+**Spec Types and Prefixes:** See `.specify/schemas/type-registry.yaml` for the complete list of spec types, their prefixes, naming guidelines, and examples.
+
+All specification files MUST follow the exact pattern:
+```
+[PREFIX]-[NUMBER]-[descriptive-name].[ext]
+```
+
+Where:
+- `[PREFIX]` = Spec type prefix (W, CON, TC, etc.)
+- `[NUMBER]` = Three-digit sequential number (001, 002, 099, 100)
+- `[descriptive-name]` = Snake_case descriptive name (1-4 words)
+- `[ext]` = File extension (.yaml for cases, .md for other specs)
+
+**Examples:**
+- `W-001-user_registration.md` (Workflow)
+- `TC-042-validate_password.yaml` (Test Case)
+- `CON-003-user_account.md` (Concept)
+- `DATA-015-order_schema.md` (Data)
+
+### Cross-Reference Format
+When specs reference other specs, use format:
+```
+[ID] [Descriptive Name with Title Case]
+```
+
+Examples:
+- `W-001 User Registration`
+- `TC-042 Validate Password`
+- `CON-003 User Account`
+
+### Deprecation Handling
+Deprecated specs MUST be moved to `deprecated/` subdirectory within their type directory:
+```
+/specs/workflows/deprecated/W-005-old_login.md
+/specs/concepts/deprecated/CON-010-legacy_user.md
+```
+
+Status field MUST be set to `deprecated` and file moved to deprecated subdirectory.
 
 ## UI Component Specifications
 
@@ -463,4 +531,4 @@ Test Cases and Scenario Cases SHOULD include conditions describing when they
 apply. This allows inherited cases to be evaluated in the context of the embedding
 Page without requiring explicit selective inheritance mechanisms.
 
-**Version**: 6.2.0 | **Ratified**: 2025-09-25 | **Last Amended**: 2025-09-26
+**Version**: 7.0.0 | **Ratified**: 2025-09-25 | **Last Amended**: 2025-09-27

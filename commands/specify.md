@@ -95,63 +95,40 @@ References to end-to-end scenarios involving this spec:
 ```
 
 ### 8. Specification Validation
-All specifications must pass validation via `scripts/validate-specs.py`. The validator enforces:
+All specifications must pass validation via `.specify/scripts/validate-specs.py`.
 
-**File Structure:**
-- Case types (TC, SC, PC) MUST use `.yaml` extension only
-- Other spec types (W, P, UI, etc.) MUST use `.md` extension only
-- The `.yml` extension is prohibited and will cause validation failure
-- Filenames MUST match their spec ID (TC-001.yaml for id: TC-001)
+**Validation Rules:** All validation rules are defined in `.specify/schemas/template-schema.json`
 
-**Required Fields (from template _meta):**
-- All specs: `id`, `name`, `type`, `status`, `hash_timestamp`
-- Test Cases: additionally require `purpose`, `preconditions`, `steps`, `validations`
-- Scenario Cases: additionally require `purpose`, `phases`
-- Precondition Cases: additionally require `purpose`, `setup_steps`
+**Spec Types and Prefixes:** See `.specify/schemas/type-registry.yaml` for the complete list of spec types, their prefixes, naming guidelines, and examples.
 
-**ID Format:**
-- Must match pattern `[PREFIX]-[NUMBER]` where PREFIX matches spec type
-- Test Cases: `TC-###` (e.g., TC-001, TC-099)
-- Scenario Cases: `SC-###` (e.g., SC-001)
-- Precondition Cases: `PC-###` (e.g., PC-001)
-- Workflows: `W-###`, Pages: `P-###`, UI Components: `UI-###`, etc.
-- Each spec type has exactly one prefix (single prefix rule)
+**Key Validation Rules** (see schema for complete details):
+- File Structure: Cases (.yaml), Others (.md), format: `[PREFIX]-[NUMBER]-[descriptive_name].[ext]`
+- Required Fields: `id`, `name`, `type`, `status`, `hash_timestamp` (+ type-specific fields)
+- ID Format: `[PREFIX]-[NUMBER]` matching spec type prefix
+- Name Format: snake_case/kebab-case, max 4 words, must match filename
+- Timestamp: ISO 8601 UTC format `YYYY-MM-DDTHH:MM:SSZ`
+- Status: One of `draft`, `ready`, `active`, `deprecated`
+- Uniqueness: No duplicate IDs globally, no duplicate names per type
+- Cross-References: Referenced IDs must exist, names must match
 
-**Timestamp Format:**
-- Must be valid ISO 8601 UTC format: `YYYY-MM-DDTHH:MM:SSZ`
-- Example: `2024-01-15T10:30:00Z`
-- MUST be updated whenever spec content changes
+**Run Validation:**
+```bash
+# Validate templates (run before committing framework changes)
+python3 .specify/scripts/validate-templates.py
 
-**Status Values:**
-- Must be one of: `draft`, `ready`, `active`, `deprecated`
-- Invalid status values cause validation warnings
+# Validate specs
+python3 .specify/scripts/validate-specs.py /specs/
 
-**Case Path References:**
-- Precondition paths MUST start with `/specs/precondition-cases/`
-- Test case paths MUST start with `/specs/test-cases/`
-- All case paths MUST end with `.yaml` extension
-- Case paths MUST use absolute paths from repository root
+# Verbose mode
+python3 .specify/scripts/validate-specs.py /specs/ --verbose
 
-**Scenario Phase Validation:**
-- Phases array MUST contain at least one phase
-- Each phase MUST have: `phase_id`, `phase_name`, `description`, `preconditions`, `test_cases`
-- Phase IDs MUST be unique within a scenario
-- Preconditions and test_cases arrays MUST have `path` field when present
-
-**Duplicate Detection:**
-- No two specs can have the same ID across the repository
-- Validator checks all spec files and reports duplicates
-
-**Cross-References (with --check-refs flag):**
-- Referenced spec IDs must exist in the repository
-- Validates `related` fields and case references
-
-Run validation: `python scripts/validate-specs.py /specs/`
-Use verbose mode: `python scripts/validate-specs.py /specs/ --verbose`
+# Migrate specs to new naming
+python3 .specify/scripts/migrate-spec-names.py /specs/ --apply
+```
 
 ### 9. Validation Enforcement
 Before finalizing any spec changes:
-- Run validator: `python scripts/validate-specs.py /specs/`
+- Run validator: `python3 .specify/scripts/validate-specs.py /specs/`
 - Fix all validation errors before proceeding
 - Ensure all timestamps are current and valid
 - Verify all file extensions are correct (.yaml for cases, .md for specs)
@@ -181,14 +158,14 @@ For "User authentication with email/password":
 - `/specs/security/SEC-001-auth/spec.md` - Password policy, sessions
 
 **Creates Standalone Cases:**
-- `/specs/test-cases/TC-001.yaml` - Login with valid credentials (timestamp: 2024-01-15T10:30:00Z)
-- `/specs/test-cases/TC-002.yaml` - Login with invalid password (timestamp: 2024-01-15T10:31:00Z)
-- `/specs/test-cases/TC-003.yaml` - Registration with new email (timestamp: 2024-01-15T10:32:00Z)
-- `/specs/test-cases/TC-004.yaml` - Password reset request (timestamp: 2024-01-15T10:33:00Z)
-- `/specs/scenario-cases/SC-001.yaml` - Complete authentication flow (timestamp: 2024-01-15T11:00:00Z)
-- `/specs/scenario-cases/SC-002.yaml` - Account recovery journey (timestamp: 2024-01-15T11:05:00Z)
-- `/specs/precondition-cases/PC-001.yaml` - Database with test users (timestamp: 2024-01-15T09:00:00Z)
-- `/specs/precondition-cases/PC-002.yaml` - Clean browser session (timestamp: 2024-01-15T09:05:00Z)
+- `/specs/test-cases/TC-001-valid_login.yaml` - Login with valid credentials (timestamp: 2024-01-15T10:30:00Z)
+- `/specs/test-cases/TC-002-invalid_password.yaml` - Login with invalid password (timestamp: 2024-01-15T10:31:00Z)
+- `/specs/test-cases/TC-003-new_registration.yaml` - Registration with new email (timestamp: 2024-01-15T10:32:00Z)
+- `/specs/test-cases/TC-004-password_reset.yaml` - Password reset request (timestamp: 2024-01-15T10:33:00Z)
+- `/specs/scenario-cases/SC-001-auth_flow.yaml` - Complete authentication flow (timestamp: 2024-01-15T11:00:00Z)
+- `/specs/scenario-cases/SC-002-account_recovery.yaml` - Account recovery journey (timestamp: 2024-01-15T11:05:00Z)
+- `/specs/precondition-cases/PC-001-test_users.yaml` - Database with test users (timestamp: 2024-01-15T09:00:00Z)
+- `/specs/precondition-cases/PC-002-clean_session.yaml` - Clean browser session (timestamp: 2024-01-15T09:05:00Z)
 
 ## Important Notes
 - DO NOT create inline test cases in specs

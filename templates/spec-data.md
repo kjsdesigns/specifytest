@@ -1,7 +1,17 @@
+<!--
+Template Metadata (used by type registry generator)
+type: Data
+id_prefix: DATA
+name_guidelines: "Data entity or schema"
+name_examples: ["user_profile", "order_history", "product_catalog", "transaction_log"]
+file_extension: md
+
+Validation rules: see .specify/schemas/template-schema.json
+-->
 <!-- See components/spec-header.md for header format -->
 ---
 id: DATA-[XXX]
-name: [descriptive-kebab-case-name]
+name: [descriptive_snake_case_name]
 type: Data
 status: draft
 related: []

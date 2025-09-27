@@ -1,15 +1,12 @@
 <!--
-Validation Metadata (used by validator, ignored when creating specs)
-_meta:
-  file_extension: md
-  id_prefix: W
-  required_fields: [id, name, type, status, hash_timestamp]
-  field_validators:
-    type:
-      enum: [Workflow]
-    status:
-      enum: [draft, ready, active, deprecated]
-    hash_timestamp: iso8601
+Template Metadata (used by type registry generator)
+type: Workflow
+id_prefix: W
+name_guidelines: "Business process or user flow"
+name_examples: ["user_registration", "order_checkout", "password_reset", "account_recovery"]
+file_extension: md
+
+Validation rules: see .specify/schemas/template-schema.json
 -->
 <!-- See components/spec-header.md for header format -->
 ---

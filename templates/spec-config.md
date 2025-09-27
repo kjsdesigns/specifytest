@@ -1,7 +1,17 @@
+<!--
+Template Metadata (used by type registry generator)
+type: Configuration
+id_prefix: CFG
+name_guidelines: "Configuration area or setting"
+name_examples: ["database_config", "api_keys", "feature_flags", "env_variables"]
+file_extension: md
+
+Validation rules: see .specify/schemas/template-schema.json
+-->
 <!-- See components/spec-header.md for header format -->
 ---
-id: CONFIG-[XXX]
-name: [descriptive-kebab-case-name]
+id: CFG-[XXX]
+name: [descriptive_snake_case_name]
 type: Configuration
 status: draft
 related: []

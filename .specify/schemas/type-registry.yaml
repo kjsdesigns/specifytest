@@ -1,0 +1,166 @@
+# AUTO-GENERATED FILE - DO NOT EDIT
+# Generated from templates in .specify/templates/
+# Run: python .specify/scripts/generate-type-registry.py
+# Last generated: 2025-09-27T16:13:50Z
+
+types:
+  Architecture:
+    prefix: ARCH
+    extension: md
+    guidelines: Architectural pattern or style
+    examples:
+    - microservices
+    - event_driven
+    - three_tier
+    - hexagonal
+    template: templates/spec-architecture.md
+  Concept:
+    prefix: CON
+    extension: md
+    guidelines: Domain entity (singular)
+    examples:
+    - user
+    - order
+    - product
+    - account
+    template: templates/spec-concept.md
+  Configuration:
+    prefix: CFG
+    extension: md
+    guidelines: Configuration area or setting
+    examples:
+    - database_config
+    - api_keys
+    - feature_flags
+    - env_variables
+    template: templates/spec-config.md
+  Contract:
+    prefix: CONTRACT
+    extension: md
+    guidelines: Contract or interface
+    examples:
+    - api_response
+    - user_schema
+    - payment_request
+    - order_payload
+    template: templates/spec-contract.md
+  Data:
+    prefix: DATA
+    extension: md
+    guidelines: Data entity or schema
+    examples:
+    - user_profile
+    - order_history
+    - product_catalog
+    - transaction_log
+    template: templates/spec-data.md
+  Event:
+    prefix: EVENT
+    extension: md
+    guidelines: Event name
+    examples:
+    - user_created
+    - order_placed
+    - payment_completed
+    - inventory_updated
+    template: templates/spec-event.md
+  Integration:
+    prefix: INT
+    extension: md
+    guidelines: Integration or external service
+    examples:
+    - stripe_payment
+    - sendgrid_email
+    - google_maps
+    - aws_s3
+    template: templates/spec-integration.md
+  Message:
+    prefix: MSG
+    extension: md
+    guidelines: Message type
+    examples:
+    - order_request
+    - payment_response
+    - user_notification
+    - status_update
+    template: templates/spec-message.md
+  Page:
+    prefix: PAGE
+    extension: md
+    guidelines: UI page or screen
+    examples:
+    - login
+    - dashboard
+    - settings
+    - profile
+    template: templates/spec-page.md
+  PreconditionCase:
+    prefix: PC
+    extension: yaml
+    guidelines: Setup or state being established
+    examples:
+    - clean_database
+    - test_users
+    - mock_payment
+    - seeded_products
+    template: templates/spec-precondition-case.yaml
+  ScenarioCase:
+    prefix: SC
+    extension: yaml
+    guidelines: End-to-end workflow or journey name
+    examples:
+    - auth_flow
+    - checkout_journey
+    - user_onboarding
+    - order_fulfillment
+    template: templates/spec-scenario-case.yaml
+  Security:
+    prefix: SEC
+    extension: md
+    guidelines: Security pattern or control
+    examples:
+    - jwt_auth
+    - rate_limiting
+    - data_encryption
+    - rbac_policy
+    template: templates/spec-security.md
+  Technology:
+    prefix: TECH
+    extension: md
+    guidelines: Technology or tool
+    examples:
+    - react_frontend
+    - postgres_db
+    - redis_cache
+    - docker_containers
+    template: templates/spec-technology.md
+  TestCase:
+    prefix: TC
+    extension: yaml
+    guidelines: Action being tested
+    examples:
+    - valid_login
+    - invalid_password
+    - missing_email
+    - successful_checkout
+    template: templates/spec-test-case.yaml
+  UI Component:
+    prefix: UI
+    extension: md
+    guidelines: Reusable UI element
+    examples:
+    - button
+    - input_field
+    - dropdown
+    - modal
+    template: templates/spec-ui-component.md
+  Workflow:
+    prefix: W
+    extension: md
+    guidelines: Business process or user flow
+    examples:
+    - user_registration
+    - order_checkout
+    - password_reset
+    - account_recovery
+    template: templates/spec-workflow.md

@@ -1,7 +1,17 @@
+<!--
+Template Metadata (used by type registry generator)
+type: Page
+id_prefix: PAGE
+name_guidelines: "UI page or screen"
+name_examples: ["login", "dashboard", "settings", "profile"]
+file_extension: md
+
+Validation rules: see .specify/schemas/template-schema.json
+-->
 <!-- See components/spec-header.md for header format -->
 ---
-id: P-[XXX]  # Note: P for Page, not PC which is for Precondition Cases
-name: [descriptive-kebab-case-name]
+id: PAGE-[XXX]
+name: [descriptive_snake_case_name]
 type: Page
 status: draft
 related: []

@@ -1,7 +1,17 @@
+<!--
+Template Metadata (used by type registry generator)
+type: Architecture
+id_prefix: ARCH
+name_guidelines: "Architectural pattern or style"
+name_examples: ["microservices", "event_driven", "three_tier", "hexagonal"]
+file_extension: md
+
+Validation rules: see .specify/schemas/template-schema.json
+-->
 <!-- See components/spec-header.md for header format -->
 ---
 id: ARCH-[XXX]
-name: [descriptive-kebab-case-name]
+name: [descriptive_snake_case_name]
 type: Architecture
 status: draft
 related: []

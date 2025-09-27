@@ -1,7 +1,17 @@
+<!--
+Template Metadata (used by type registry generator)
+type: Technology
+id_prefix: TECH
+name_guidelines: "Technology or tool"
+name_examples: ["react_frontend", "postgres_db", "redis_cache", "docker_containers"]
+file_extension: md
+
+Validation rules: see .specify/schemas/template-schema.json
+-->
 <!-- See components/spec-header.md for header format -->
 ---
 id: TECH-[XXX]
-name: [descriptive-kebab-case-name]
+name: [descriptive_snake_case_name]
 type: Technology
 status: draft
 related: []

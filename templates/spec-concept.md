@@ -1,7 +1,17 @@
+<!--
+Template Metadata (used by type registry generator)
+type: Concept
+id_prefix: CON
+name_guidelines: "Domain entity (singular)"
+name_examples: ["user", "order", "product", "account"]
+file_extension: md
+
+Validation rules: see .specify/schemas/template-schema.json
+-->
 <!-- See components/spec-header.md for header format -->
 ---
-id: C-[XXX]
-name: [descriptive-kebab-case-name]
+id: CON-[XXX]
+name: [descriptive_snake_case_name]
 type: Concept
 status: draft
 related: []

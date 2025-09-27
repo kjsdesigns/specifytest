@@ -1,7 +1,17 @@
+<!--
+Template Metadata (used by type registry generator)
+type: Message
+id_prefix: MSG
+name_guidelines: "Message type"
+name_examples: ["order_request", "payment_response", "user_notification", "status_update"]
+file_extension: md
+
+Validation rules: see .specify/schemas/template-schema.json
+-->
 <!-- See components/spec-header.md for header format -->
 ---
 id: MESSAGE-[XXX]
-name: [descriptive-kebab-case-name]
+name: [descriptive_snake_case_name]
 type: Message
 status: draft
 related: []

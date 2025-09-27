@@ -1,23 +1,12 @@
-# Validation Metadata (used by validator, ignored when creating specs)
-_meta:
-  file_extension: yaml
-  id_prefix: PC
-  required_fields:
-    - id
-    - name
-    - type
-    - status
-    - hash_timestamp
-    - purpose
-    - setup_steps
-  field_validators:
-    type:
-      enum: [PreconditionCase]
-    status:
-      enum: [draft, ready, active, deprecated]
-    hash_timestamp: iso8601
+# Template Metadata (used by type registry generator)
+type: PreconditionCase
+id_prefix: PC
+name_guidelines: "Setup or state being established"
+name_examples: ["clean_database", "test_users", "mock_payment", "seeded_products"]
+file_extension: yaml
 
-# Template starts here
+# Validation rules: see .specify/schemas/template-schema.json
+# Template content starts here
 id: PC-[XXX]
 name: [descriptive-kebab-case-name]
 type: PreconditionCase

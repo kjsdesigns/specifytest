@@ -1,7 +1,17 @@
+<!--
+Template Metadata (used by type registry generator)
+type: Contract
+id_prefix: CONTRACT
+name_guidelines: "Contract or interface"
+name_examples: ["api_response", "user_schema", "payment_request", "order_payload"]
+file_extension: md
+
+Validation rules: see .specify/schemas/template-schema.json
+-->
 <!-- See components/spec-header.md for header format -->
 ---
 id: CONTRACT-[XXX]
-name: [descriptive-kebab-case-name]
+name: [descriptive_snake_case_name]
 type: Contract
 status: draft
 category: [api|data|ui|event|message]

@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """
 Specification Validation Tool
-Validates specs against template requirements and constitution rules
+Validates specs against template-schema.json and type-registry.yaml
+Single source of truth for all validation rules
 """
 
 import os
 import re
 import sys
 import yaml
+import json
 import argparse
 from pathlib import Path
 from datetime import datetime
@@ -53,168 +55,148 @@ class SpecValidator:
         self.check_refs = check_refs
         self.verbose = verbose
         self.all_spec_ids: Dict[str, Path] = {}
+        self.all_spec_names: Dict[str, Path] = {}  # Track unique names
         self.all_spec_files: List[Path] = []
 
-        # Find template directory with failsafe
-        self.template_dir = self._find_templates_directory()
+        # Load validation schema (single source of truth)
+        self.schema = self._load_schema()
 
-        # Load spec type definitions from templates
-        self.spec_type_info = self._load_template_definitions()
+        # Load type registry (generated from templates)
+        self.type_registry = self._load_type_registry()
 
-    def _find_templates_directory(self) -> Optional[Path]:
-        """Find templates directory with failsafe fallback logic"""
-        locations = [
-            self.repo_root / 'templates',
-            self.repo_root / '.specify' / 'templates',
-            self.repo_root / 'test-specs' / 'templates'
+        # Build spec type info from registry
+        self.spec_type_info = self._build_type_info()
+
+    def _load_schema(self) -> Dict:
+        """Load template-schema.json as single source of truth"""
+        schema_paths = [
+            self.repo_root / '.specify' / 'schemas' / 'template-schema.json',
+            self.repo_root / 'schemas' / 'template-schema.json'
         ]
 
-        for template_dir in locations:
-            if template_dir.exists() and template_dir.is_dir():
-                if self.verbose:
-                    print(f"{Colors.BLUE}Using templates from:{Colors.NC} {template_dir}")
-                return template_dir
+        for schema_path in schema_paths:
+            if schema_path.exists():
+                try:
+                    with open(schema_path, 'r') as f:
+                        schema = json.load(f)
+                    if self.verbose:
+                        print(f"{Colors.BLUE}Using validation schema:{Colors.NC} {schema_path}")
+                    return schema
+                except Exception as e:
+                    if self.verbose:
+                        print(f"{Colors.YELLOW}Warning: Could not load schema: {e}{Colors.NC}")
 
         if self.verbose:
-            print(f"{Colors.YELLOW}Warning: No templates directory found, using built-in defaults{Colors.NC}")
-        return None
+            print(f"{Colors.YELLOW}Warning: No schema found, using built-in defaults{Colors.NC}")
+        return {}
 
-    def _load_template_definitions(self) -> Dict[str, Dict[str, any]]:
-        """Load spec type definitions from templates via introspection"""
+    def _load_type_registry(self) -> Dict:
+        """Load type-registry.yaml generated from templates"""
+        registry_paths = [
+            self.repo_root / '.specify' / 'schemas' / 'type-registry.yaml',
+            self.repo_root / 'schemas' / 'type-registry.yaml'
+        ]
+
+        for registry_path in registry_paths:
+            if registry_path.exists():
+                try:
+                    with open(registry_path, 'r') as f:
+                        registry = yaml.safe_load(f)
+                    if self.verbose:
+                        print(f"{Colors.BLUE}Using type registry:{Colors.NC} {registry_path}")
+                    return registry
+                except Exception as e:
+                    if self.verbose:
+                        print(f"{Colors.YELLOW}Warning: Could not load type registry: {e}{Colors.NC}")
+
+        if self.verbose:
+            print(f"{Colors.YELLOW}Warning: No type registry found{Colors.NC}")
+        return {'types': {}}
+
+    def _build_type_info(self) -> Dict[str, Dict]:
+        """Build spec type info from type registry"""
         spec_types = {}
 
-        if not self.template_dir:
-            if self.verbose:
-                print(f"{Colors.YELLOW}No templates found, using minimal built-in validation{Colors.NC}")
+        if not self.type_registry or 'types' not in self.type_registry:
             return {}
 
-        # Find all spec template files (only .yaml and .md now)
-        for pattern in ['spec-*.md', 'spec-*.yaml']:
-            for template_file in self.template_dir.glob(pattern):
-                try:
-                    type_info = self._extract_template_info(template_file)
-                    if type_info:
-                        spec_type = type_info['type']
-                        spec_types[spec_type] = type_info
-                except Exception as e:
-                    # Silently skip templates that can't be parsed
-                    pass
+        for type_name, type_data in self.type_registry['types'].items():
+            spec_types[type_name] = {
+                'type': type_name,
+                'prefix': type_data.get('prefix', ''),
+                'file_extension': type_data.get('extension', 'md'),
+                'name_guidelines': type_data.get('guidelines', ''),
+                'name_examples': type_data.get('examples', []),
+                'required_fields': ['id', 'name', 'type', 'status', 'hash_timestamp']
+            }
 
         return spec_types
 
-    def _extract_template_info(self, template_file: Path) -> Optional[Dict[str, any]]:
-        """Extract type name, ID prefix, and required fields from a template"""
-        try:
-            if template_file.suffix == '.yaml':
-                with open(template_file, 'r') as f:
-                    content = yaml.safe_load(f)
-
-                if not content or not isinstance(content, dict):
-                    return None
-
-                # Check for _meta section first (new format)
-                if '_meta' in content:
-                    meta = content['_meta']
-                    spec_type = content.get('type')
-                    if not spec_type:
-                        return None
-
-                    return {
-                        'type': spec_type,
-                        'prefix': meta.get('id_prefix'),
-                        'file_extension': meta.get('file_extension', 'yaml'),
-                        'required_fields': meta.get('required_fields', ['id', 'name', 'type', 'hash_timestamp']),
-                        'field_validators': meta.get('field_validators', {})
-                    }
-
-                # Fallback to old introspection method
-                spec_type = content.get('type')
-                spec_id = content.get('id', '')
-
-                if not spec_type or not spec_id:
-                    return None
-
-                # Extract prefix from ID pattern (e.g., "TC-[XXX]" -> "TC")
-                prefix_match = re.match(r'^([A-Z]+)-\[', spec_id)
-                prefix = prefix_match.group(1) if prefix_match else None
-
-                if not prefix:
-                    return None
-
-                # Get required fields (fallback)
-                required_fields = ['id', 'name', 'type', 'hash_timestamp']
-
-                return {
-                    'type': spec_type,
-                    'prefix': prefix,
-                    'required_fields': required_fields
-                }
-
-            elif template_file.suffix == '.md':
-                with open(template_file, 'r') as f:
-                    content = f.read()
-
-                # Check for _meta in HTML comment first (new format)
-                meta_match = re.search(r'<!--\s*.*?_meta:\s*\n(.*?)\n-->', content, re.DOTALL)
-                if meta_match:
-                    try:
-                        # Extract the YAML-like content from the comment
-                        meta_yaml = meta_match.group(1)
-                        # Parse as YAML
-                        meta = yaml.safe_load(meta_yaml)
-
-                        # Extract frontmatter for type
-                        yaml_match = re.search(r'---\s*\n(.*?)\n---', content, re.DOTALL)
-                        if yaml_match:
-                            frontmatter = yaml.safe_load(yaml_match.group(1))
-                            spec_type = frontmatter.get('type')
-
-                            if spec_type and meta:
-                                return {
-                                    'type': spec_type,
-                                    'prefix': meta.get('id_prefix'),
-                                    'file_extension': meta.get('file_extension', 'md'),
-                                    'required_fields': meta.get('required_fields', ['id', 'name', 'type', 'hash_timestamp']),
-                                    'field_validators': meta.get('field_validators', {})
-                                }
-                    except:
-                        pass  # Fall back to old method
-
-                # Fallback: Extract YAML frontmatter (old method)
-                yaml_match = re.search(r'---\s*\n(.*?)\n---', content, re.DOTALL)
-                if not yaml_match:
-                    return None
-
-                frontmatter = yaml.safe_load(yaml_match.group(1))
-                if not frontmatter or not isinstance(frontmatter, dict):
-                    return None
-
-                spec_type = frontmatter.get('type')
-                spec_id = frontmatter.get('id', '')
-
-                if not spec_type or not spec_id:
-                    return None
-
-                # Extract prefix from ID pattern
-                prefix_match = re.match(r'^([A-Z]+)-\[', spec_id)
-                prefix = prefix_match.group(1) if prefix_match else None
-
-                if not prefix:
-                    return None
-
-                return {
-                    'type': spec_type,
-                    'prefix': prefix,
-                    'required_fields': ['id', 'name', 'type', 'hash_timestamp']
-                }
-
-        except Exception as e:
+    def get_name_pattern(self, spec_type: str) -> Optional[str]:
+        """Get name pattern from schema for a spec type"""
+        if not self.schema or 'definitions' not in self.schema:
             return None
 
-        return None
+        # Get common fields pattern
+        common_fields = self.schema.get('definitions', {}).get('commonFields', {})
+        name_field = common_fields.get('properties', {}).get('name', {})
+        return name_field.get('pattern')
 
-    def validate_filename(self, file_path: Path, spec_id: str, spec_type: str) -> bool:
-        """Validate that filename matches spec ID and follows conventions"""
+    def get_word_limit(self, spec_type: str) -> int:
+        """Get word limit for spec names (default 4)"""
+        # Word limit is defined in schema description: "max 4 words"
+        return 4
+
+    def validate_name_field(self, name: str, spec_type: str, file_path: Path) -> bool:
+        """Validate the descriptive name field against schema rules"""
+        # Check name pattern from schema
+        name_pattern = self.get_name_pattern(spec_type)
+        if name_pattern:
+            if not re.match(name_pattern, name):
+                type_info = self.spec_type_info.get(spec_type, {})
+                guidelines = type_info.get('name_guidelines', 'descriptive name')
+                self.errors.append(ValidationError(
+                    file_path,
+                    'error',
+                    f"Invalid name format: '{name}'. Must match pattern {name_pattern} ({guidelines})"
+                ))
+                return False
+
+        # Check word limit from schema
+        word_limit = self.get_word_limit(spec_type)
+        if word_limit:
+            # Count words (split by underscores, hyphens, or spaces)
+            words = re.split(r'[_\-\s]+', name)
+            word_count = len([w for w in words if w])  # Filter empty strings
+            if word_count > word_limit:
+                self.errors.append(ValidationError(
+                    file_path,
+                    'error',
+                    f"Name too long: '{name}' has {word_count} words, limit is {word_limit}"
+                ))
+                return False
+
+        return True
+
+    def check_duplicate_name(self, name: str, spec_type: str, file_path: Path) -> bool:
+        """Check for duplicate spec names within the same type"""
+        # Create composite key: type + name
+        name_key = f"{spec_type}:{name}"
+
+        if name_key in self.all_spec_names:
+            existing_file = self.all_spec_names[name_key]
+            self.errors.append(ValidationError(
+                file_path,
+                'error',
+                f"Duplicate spec name '{name}' for type '{spec_type}'. Also exists in {existing_file}"
+            ))
+            return False
+
+        self.all_spec_names[name_key] = file_path
+        return True
+
+    def validate_filename(self, file_path: Path, spec_id: str, spec_name: str, spec_type: str) -> bool:
+        """Validate that filename matches expected pattern: [PREFIX]-[NUMBER]-[descriptive-name].[ext]"""
         if not self.check_filenames:
             return True
 
@@ -224,11 +206,46 @@ class SpecValidator:
         if not type_info:
             return True
 
-        if spec_id != filename:
+        # Expected filename format: [PREFIX]-[NUMBER]-[descriptive-name]
+        expected_prefix = type_info['prefix']
+
+        # Parse filename into parts
+        filename_parts = filename.split('-', 2)  # Split into at most 3 parts
+
+        if len(filename_parts) < 3:
+            self.errors.append(ValidationError(
+                file_path,
+                'error',
+                f"Invalid filename format: '{filename}'. Expected format: {expected_prefix}-XXX-{spec_name}"
+            ))
+            return False
+
+        prefix_part, number_part, name_part = filename_parts
+
+        # Validate prefix matches
+        if prefix_part != expected_prefix:
+            self.errors.append(ValidationError(
+                file_path,
+                'error',
+                f"Filename prefix '{prefix_part}' doesn't match expected '{expected_prefix}'"
+            ))
+            return False
+
+        # Validate number part
+        if not number_part.isdigit():
+            self.errors.append(ValidationError(
+                file_path,
+                'error',
+                f"Filename number part '{number_part}' must be numeric"
+            ))
+            return False
+
+        # Validate descriptive name part matches spec name field
+        if name_part != spec_name:
             self.errors.append(ValidationError(
                 file_path,
                 'warning',
-                f"Filename '{filename}' doesn't match spec ID '{spec_id}'. Expected '{spec_id}.yaml' or '{spec_id}.md'"
+                f"Filename descriptive part '{name_part}' doesn't match spec name field '{spec_name}'. Expected: {expected_prefix}-{number_part}-{spec_name}"
             ))
             return False
 
@@ -513,7 +530,13 @@ class SpecValidator:
             # Validate ID format
             if 'id' in content and 'type' in content:
                 self.validate_id_format(content['id'], content['type'], file_path)
-                self.validate_filename(file_path, content['id'], content['type'])
+
+                # Validate name field
+                if 'name' in content:
+                    self.validate_name_field(content['name'], content['type'], file_path)
+                    self.check_duplicate_name(content['name'], content['type'], file_path)
+                    self.validate_filename(file_path, content['id'], content['name'], content['type'])
+
                 self.check_duplicate_id(content['id'], file_path)
 
             # Validate timestamp
@@ -598,7 +621,13 @@ class SpecValidator:
             # Validate ID format
             if 'id' in frontmatter and 'type' in frontmatter:
                 self.validate_id_format(frontmatter['id'], frontmatter['type'], file_path)
-                self.validate_filename(file_path, frontmatter['id'], frontmatter['type'])
+
+                # Validate name field
+                if 'name' in frontmatter:
+                    self.validate_name_field(frontmatter['name'], frontmatter['type'], file_path)
+                    self.check_duplicate_name(frontmatter['name'], frontmatter['type'], file_path)
+                    self.validate_filename(file_path, frontmatter['id'], frontmatter['name'], frontmatter['type'])
+
                 self.check_duplicate_id(frontmatter['id'], file_path)
 
             # Validate timestamp
@@ -711,6 +740,7 @@ class SpecValidator:
 
             # Clear the IDs dict to re-populate during validation (for duplicate detection)
             self.all_spec_ids.clear()
+            self.all_spec_names.clear()
 
         # Second pass: validate all files
         for file_path in spec_files:

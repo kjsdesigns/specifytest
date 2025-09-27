@@ -1,7 +1,17 @@
+<!--
+Template Metadata (used by type registry generator)
+type: Event
+id_prefix: EVENT
+name_guidelines: "Event name"
+name_examples: ["user_created", "order_placed", "payment_completed", "inventory_updated"]
+file_extension: md
+
+Validation rules: see .specify/schemas/template-schema.json
+-->
 <!-- See components/spec-header.md for header format -->
 ---
 id: EVENT-[XXX]
-name: [descriptive-kebab-case-name]
+name: [descriptive_snake_case_name]
 type: Event
 status: draft
 related: []

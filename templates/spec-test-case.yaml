@@ -1,26 +1,12 @@
-# Validation Metadata (used by validator, ignored when creating specs)
-_meta:
-  file_extension: yaml
-  id_prefix: TC
-  required_fields:
-    - id
-    - name
-    - type
-    - status
-    - hash_timestamp
-    - purpose
-    - preconditions
-    - steps
-    - validations
-  field_validators:
-    type:
-      enum: [TestCase]
-    status:
-      enum: [draft, ready, active, deprecated]
-    hash_timestamp: iso8601
-    preconditions: array_of_paths
+# Template Metadata (used by type registry generator)
+type: TestCase
+id_prefix: TC
+name_guidelines: "Action being tested"
+name_examples: ["valid_login", "invalid_password", "missing_email", "successful_checkout"]
+file_extension: yaml
 
-# Template starts here
+# Validation rules: see .specify/schemas/template-schema.json
+# Template content starts here
 id: TC-[XXX]
 name: [descriptive-kebab-case-name]
 type: TestCase

@@ -1,10 +1,22 @@
+<!--
+Template Metadata (used by type registry generator)
+type: Security
+id_prefix: SEC
+name_guidelines: "Security pattern or control"
+name_examples: ["jwt_auth", "rate_limiting", "data_encryption", "rbac_policy"]
+file_extension: md
+
+Validation rules: see .specify/schemas/template-schema.json
+-->
+<!-- See components/spec-header.md for header format -->
 ---
 id: SEC-[XXX]
+name: [descriptive_snake_case_name]
 type: Security
-name: [Security Pattern Name]
 status: draft
 category: [authentication|authorization|encryption|audit|compliance]
 related: []
+hash_timestamp: [ISO_8601_TIMESTAMP]  # Updated on every save
 ---
 # {name}
 
